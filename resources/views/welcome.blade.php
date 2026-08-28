@@ -1,11 +1,24 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
+        @php
+            $seoTitle = 'Wavexa — Discover live radio and TV worldwide';
+            $seoDescription = 'Explore live radio stations and supported live television streams by country on Wavexa.';
+            $seoCanonical = \App\Support\Seo::siteUrl();
+            $seoImage = \App\Support\Seo::image();
+        @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="description" content="Discover live radio, television, and podcasts through the places and people that shape them with Wavexa.">
+        <meta name="description" content="{{ $seoDescription }}">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+        <link rel="canonical" href="{{ $seoCanonical }}">
+        <link rel="alternate" type="application/rss+xml" title="Wavexa recently added live media" href="{{ \App\Support\Seo::siteUrl('feed.xml') }}">
+        <meta property="og:type" content="website"><meta property="og:site_name" content="Wavexa"><meta property="og:locale" content="en_US">
+        <meta property="og:title" content="{{ $seoTitle }}"><meta property="og:description" content="{{ $seoDescription }}"><meta property="og:url" content="{{ $seoCanonical }}"><meta property="og:image" content="{{ $seoImage }}">
+        <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{ $seoTitle }}"><meta name="twitter:description" content="{{ $seoDescription }}"><meta name="twitter:image" content="{{ $seoImage }}">
         <meta name="theme-color" content="#fff7ed">
-        <title>Wavexa — The world is live</title>
+        <title>{{ $seoTitle }}</title>
+        <script type="application/ld+json">{!! \App\Support\Seo::schema($seoTitle, $seoDescription, $seoCanonical) !!}</script>
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -29,7 +42,7 @@
                 <nav class="hidden items-center gap-1 rounded-full border border-stone-200 bg-white p-1 text-sm font-semibold shadow-sm md:flex" aria-label="Primary navigation">
                     <a wire:navigate href="#discover" class="rounded-full bg-slate-950 px-5 py-2 text-white">Discover</a>
                     <a wire:navigate href="{{ route('radio.index') }}" class="rounded-full px-5 py-2 text-slate-600 hover:bg-orange-50 hover:text-orange-700">Radio</a>
-                    <a wire:navigate href="#television" class="rounded-full px-5 py-2 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700">TV</a>
+                    <a wire:navigate href="{{ route('tv.index') }}" class="rounded-full px-5 py-2 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700">TV</a>
                     <a wire:navigate href="#podcasts" class="rounded-full px-5 py-2 text-slate-600 hover:bg-violet-50 hover:text-violet-700">Podcasts</a>
                 </nav>
 
@@ -79,7 +92,7 @@
                                 <strong class="mt-3 block text-sm">Radio</strong>
                                 <span class="hidden text-xs text-orange-100 sm:block">Listen live</span>
                             </a>
-                            <a wire:navigate href="#television" class="min-w-0 rounded-2xl bg-cyan-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
+                            <a wire:navigate href="{{ route('tv.index') }}" class="min-w-0 rounded-2xl bg-cyan-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
                                 <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="m9 9 6 3-6 3Z"/></svg>
                                 <strong class="mt-3 block text-sm">TV</strong>
                                 <span class="hidden text-xs text-cyan-100 sm:block">Watch live</span>

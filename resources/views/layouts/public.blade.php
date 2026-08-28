@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
+        @php
+            $seoTitle = trim($__env->yieldContent('title', 'Wavexa — The world is live'));
+            $seoDescription = \App\Support\Seo::description(trim($__env->yieldContent('description', 'Discover live radio and supported live television streams from around the world with Wavexa.')));
+            $seoCanonical = trim($__env->yieldContent('canonical', \App\Support\Seo::canonical()));
+            $seoImage = \App\Support\Seo::image(trim($__env->yieldContent('meta_image')) ?: null);
+            $seoRobots = request()->query() === [] ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' : 'noindex, follow';
+            $seoSchema = trim($__env->yieldContent('structured_data')) ?: \App\Support\Seo::schema($seoTitle, $seoDescription, $seoCanonical);
+        @endphp
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#fafaf9">
-        <meta name="description" content="@yield('description', 'Discover live media from around the world with Wavexa.')">
-        <title>@yield('title', 'Wavexa')</title>
+        <meta name="description" content="{{ $seoDescription }}">
+        <meta name="robots" content="@yield('robots', $seoRobots)">
+        <link rel="canonical" href="{{ $seoCanonical }}">
+        <link rel="alternate" type="application/rss+xml" title="Wavexa recently added live media" href="{{ \App\Support\Seo::siteUrl('feed.xml') }}">
+        <meta property="og:type" content="website"><meta property="og:site_name" content="Wavexa"><meta property="og:locale" content="en_US">
+        <meta property="og:title" content="{{ $seoTitle }}"><meta property="og:description" content="{{ $seoDescription }}"><meta property="og:url" content="{{ $seoCanonical }}"><meta property="og:image" content="{{ $seoImage }}">
+        <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{ $seoTitle }}"><meta name="twitter:description" content="{{ $seoDescription }}"><meta name="twitter:image" content="{{ $seoImage }}">
+        <title>{{ $seoTitle }}</title>
+        <script type="application/ld+json">{!! $seoSchema !!}</script>
         @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles

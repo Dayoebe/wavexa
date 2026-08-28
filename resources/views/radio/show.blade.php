@@ -2,6 +2,9 @@
 
 @section('title', $station->name.' — Live Radio on Wavexa')
 @section('description', 'Listen to '.$station->name.' live and view its available station, source, language, genre, and stream details.')
+@section('canonical', route('radio.show', $station->slug))
+@section('meta_image', $station->artworks->firstWhere('is_primary', true)?->url ?? '')
+@section('structured_data', \App\Support\Seo::schema($station->name.' — Live Radio on Wavexa', 'Listen to '.$station->name.' live and view its station, source, language, genre, and stream details.', route('radio.show', $station->slug), [['name' => 'Home', 'url' => route('home')], ['name' => 'Radio', 'url' => route('radio.index')], ['name' => $station->name, 'url' => route('radio.show', $station->slug)]]))
 
 @section('content')
     @php
@@ -15,7 +18,7 @@
 
     <section class="border-b border-orange-200 bg-orange-50">
         <div class="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
-            <a wire:navigate href="{{ route('radio.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-600"><span aria-hidden="true">←</span> All radio stations</a>
+            <nav aria-label="Breadcrumb"><ol class="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-600"><li><a wire:navigate href="{{ route('home') }}">Home</a></li><li aria-hidden="true">/</li><li><a wire:navigate href="{{ route('radio.index') }}">Radio</a></li><li aria-hidden="true">/</li><li aria-current="page" class="truncate">{{ $station->name }}</li></ol></nav>
             <div class="mt-8 grid gap-7 sm:grid-cols-[180px_1fr] sm:items-center">
                 <div class="relative grid aspect-square w-36 place-items-center overflow-hidden rounded-[34px] bg-orange-200 text-5xl font-black text-orange-700 shadow-lg sm:w-full">{{ $initial }}@if ($artwork)<img src="{{ $artwork }}" alt="{{ $station->name }} logo" class="absolute inset-0 size-full object-contain" referrerpolicy="no-referrer" onerror="this.remove()">@endif</div>
                 <div><div class="flex flex-wrap items-center gap-2"><span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-extrabold text-emerald-700"><span class="size-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> Stream online</span><span class="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600">Rights review pending</span></div><h1 class="mt-4 text-4xl font-extrabold tracking-[-0.04em] sm:text-6xl">{{ $station->name }}</h1><p class="mt-3 text-lg text-slate-600">{{ $station->country?->name ?? ($metadata['country'] ?? 'Location not supplied') }}@if ($metadata['state'] ?? null) · {{ $metadata['state'] }}@endif</p><button type="button" data-play-station data-stream="{{ $streamUrl }}" data-title="{{ $station->name }}" data-slug="{{ $station->slug }}" data-art="{{ $initial }}" class="mt-7 inline-flex items-center gap-3 rounded-2xl bg-orange-500 px-6 py-4 font-extrabold text-white shadow-lg"><span class="grid size-8 place-items-center rounded-full bg-white text-orange-600"><svg viewBox="0 0 24 24" class="ml-0.5 size-4" fill="currentColor"><path d="m8 5 11 7-11 7Z"/></svg></span>Listen live</button></div>
