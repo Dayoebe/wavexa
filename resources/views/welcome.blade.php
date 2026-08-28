@@ -10,11 +10,11 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen bg-stone-50 font-sans text-slate-950 antialiased">
-        <a href="#main-content" class="sr-only z-[100] rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
+        <a wire:navigate href="#main-content" class="sr-only z-[100] rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Skip to content</a>
 
         <header class="sticky top-0 z-40 border-b border-stone-200 bg-stone-50/95 backdrop-blur-xl">
             <div class="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <a href="{{ url('/') }}" class="flex items-center gap-2.5" aria-label="Wavexa home">
+                <a wire:navigate href="{{ url('/') }}" class="flex items-center gap-2.5" aria-label="Wavexa home">
                     <span class="grid size-10 place-items-center rounded-[14px] bg-orange-500 text-white shadow-sm">
                         <svg viewBox="0 0 24 24" class="size-6" aria-hidden="true">
                             <path d="M3 12h2l2-6 3 12 3-9 2 6 2-3h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4"/>
@@ -27,10 +27,10 @@
                 </a>
 
                 <nav class="hidden items-center gap-1 rounded-full border border-stone-200 bg-white p-1 text-sm font-semibold shadow-sm md:flex" aria-label="Primary navigation">
-                    <a href="#discover" class="rounded-full bg-slate-950 px-5 py-2 text-white">Discover</a>
-                    <a href="{{ route('radio.index') }}" class="rounded-full px-5 py-2 text-slate-600 hover:bg-orange-50 hover:text-orange-700">Radio</a>
-                    <a href="#television" class="rounded-full px-5 py-2 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700">TV</a>
-                    <a href="#podcasts" class="rounded-full px-5 py-2 text-slate-600 hover:bg-violet-50 hover:text-violet-700">Podcasts</a>
+                    <a wire:navigate href="#discover" class="rounded-full bg-slate-950 px-5 py-2 text-white">Discover</a>
+                    <a wire:navigate href="{{ route('radio.index') }}" class="rounded-full px-5 py-2 text-slate-600 hover:bg-orange-50 hover:text-orange-700">Radio</a>
+                    <a wire:navigate href="#television" class="rounded-full px-5 py-2 text-slate-600 hover:bg-cyan-50 hover:text-cyan-700">TV</a>
+                    <a wire:navigate href="#podcasts" class="rounded-full px-5 py-2 text-slate-600 hover:bg-violet-50 hover:text-violet-700">Podcasts</a>
                 </nav>
 
                 <button type="button" class="grid size-10 place-items-center rounded-full border border-stone-200 bg-white text-slate-700 shadow-sm" aria-label="Open profile preview">
@@ -74,17 +74,17 @@
                         </div>
 
                         <div class="mt-7 grid grid-cols-3 gap-2.5 sm:max-w-xl sm:gap-3" aria-label="Media types">
-                            <a href="{{ route('radio.index') }}" class="min-w-0 rounded-2xl bg-orange-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
+                            <a wire:navigate href="{{ route('radio.index') }}" class="min-w-0 rounded-2xl bg-orange-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
                                 <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg>
                                 <strong class="mt-3 block text-sm">Radio</strong>
                                 <span class="hidden text-xs text-orange-100 sm:block">Listen live</span>
                             </a>
-                            <a href="#television" class="min-w-0 rounded-2xl bg-cyan-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
+                            <a wire:navigate href="#television" class="min-w-0 rounded-2xl bg-cyan-500 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
                                 <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="m9 9 6 3-6 3Z"/></svg>
                                 <strong class="mt-3 block text-sm">TV</strong>
                                 <span class="hidden text-xs text-cyan-100 sm:block">Watch live</span>
                             </a>
-                            <a href="#podcasts" class="min-w-0 rounded-2xl bg-violet-600 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
+                            <a wire:navigate href="#podcasts" class="min-w-0 rounded-2xl bg-violet-600 p-3.5 text-white shadow-sm transition hover:-translate-y-0.5 sm:p-4">
                                 <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="11" r="3"/><path d="M7.8 15.2a6 6 0 1 1 8.4 0M5 18a9 9 0 1 1 14 0M10 17h4l-1 5h-2Z"/></svg>
                                 <strong class="mt-3 block text-sm">Podcasts</strong>
                                 <span class="hidden text-xs text-violet-100 sm:block">Find stories</span>
@@ -258,7 +258,7 @@
                 ['Saved', '#personal', 'heart'],
                 ['Profile', '#personal', 'profile'],
             ] as [$label, $href, $icon])
-                <a href="{{ $href }}" @class(['flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold', 'bg-orange-100 text-orange-700' => $label === 'Discover', 'text-slate-500' => $label !== 'Discover'])>
+                <a wire:navigate href="{{ $href }}" @class(['flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold', 'bg-orange-100 text-orange-700' => $label === 'Discover', 'text-slate-500' => $label !== 'Discover'])>
                     @if ($icon === 'compass')
                         <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4Z"/></svg>
                     @elseif ($icon === 'radio')

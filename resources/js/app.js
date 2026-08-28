@@ -42,11 +42,16 @@ if (radioDock && radioAudio) {
         try { hls = await attachStream(radioAudio, stream, () => { streamIndex++; loadCurrent(); }); if (autoplay) await radioAudio.play(); }
         catch (error) { status.textContent = error.message === 'mixed-content' ? 'HTTP stream blocked. Trying another source…' : 'Trying another source…'; streamIndex++; loadCurrent(autoplay); }
     };
-    document.querySelectorAll('[data-play-station]').forEach((button) => button.addEventListener('click', async () => {
-        state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button) };
-        streamIndex = 0; showState(); localStorage.setItem('wavexa-player', JSON.stringify(state)); await loadCurrent();
-        fetch(`/radio/${encodeURIComponent(state.slug)}/play`, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
-    }));
+    const bindRadioButtons = () => document.querySelectorAll('[data-play-station]:not([data-player-bound])').forEach((button) => {
+        button.dataset.playerBound = 'true';
+        button.addEventListener('click', async () => {
+            state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button) };
+            streamIndex = 0; showState(); localStorage.setItem('wavexa-player', JSON.stringify(state)); await loadCurrent();
+            fetch(`/radio/${encodeURIComponent(state.slug)}/play`, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
+        });
+    });
+    bindRadioButtons();
+    document.addEventListener('livewire:navigated', bindRadioButtons);
     toggle?.addEventListener('click', () => radioAudio.paused ? loadCurrent() : radioAudio.pause());
     report?.addEventListener('click', async () => {
         const stream = state?.streams?.[streamIndex]; if (!stream?.id) return;
@@ -61,7 +66,8 @@ if (radioDock && radioAudio) {
 }
 
 const initializeTvPlayer = async () => {
-    const player = document.querySelector('[data-tv-player]'); if (!player) return;
+    const player = document.querySelector('[data-tv-player]:not([data-player-bound])'); if (!player) return;
+    player.dataset.playerBound = 'true';
     const message = document.querySelector('[data-tv-message]'); const streams = parseStreams(player);
     let index = 0; let hls = null;
     const load = async () => {
@@ -76,16 +82,35 @@ const initializeTvPlayer = async () => {
 };
 initializeTvPlayer();
 
-document.querySelectorAll('[data-report-stream]').forEach((button) => button.addEventListener('click', async () => {
-    const response = await fetch(`/streams/${button.dataset.reportStream}/report`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }, body: JSON.stringify({ reason: 'not_playing' }) });
-    const message = document.querySelector('[data-report-message]');
-    if (response.ok && message) { message.textContent = 'Thank you. This stream has been queued for review.'; message.classList.remove('hidden'); button.disabled = true; }
-}));
-
-document.querySelectorAll('[data-filter-toggle]').forEach((button) => button.addEventListener('click', () => {
-    const panel = button.parentElement.querySelector('[data-filter-panel]');
-    const opening = panel.classList.contains('hidden');
-    panel.classList.toggle('hidden', !opening); panel.classList.toggle('grid', opening);
-    button.setAttribute('aria-expanded', String(opening));
-    button.querySelector('span').textContent = opening ? '−' : '＋';
-}));
+const bindPageControls = () => {
+    initializeTvPlayer();
+    document.querySelectorAll('[data-report-stream]:not([data-report-bound])').forEach((button) => {
+        button.dataset.reportBound = 'true';
+        button.addEventListener('click', async () => {
+            const response = await fetch(`/streams/${button.dataset.reportStream}/report`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }, body: JSON.stringify({ reason: 'not_playing' }) });
+            const message = document.querySelector('[data-report-message]');
+            if (response.ok && message) { message.textContent = 'Thank you. This stream has been queued for review.'; message.classList.remove('hidden'); button.disabled = true; }
+        });
+    });
+    document.querySelectorAll('[data-filter-toggle]:not([data-filter-bound])').forEach((button) => {
+        button.dataset.filterBound = 'true';
+        button.addEventListener('click', () => {
+            const panel = button.parentElement.querySelector('[data-filter-panel]');
+            const opening = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !opening); panel.classList.toggle('grid', opening);
+            button.setAttribute('aria-expanded', String(opening));
+            button.lastElementChild.textContent = opening ? '−' : '＋';
+        });
+    });
+    document.querySelectorAll('form[data-filter-panel]:not([data-navigate-bound])').forEach((form) => {
+        form.dataset.navigateBound = 'true';
+        form.addEventListener('submit', (event) => {
+            if (!window.Livewire?.navigate) return;
+            event.preventDefault();
+            const query = new URLSearchParams(new FormData(form)).toString();
+            window.Livewire.navigate(`${form.action || window.location.pathname}?${query}`);
+        });
+    });
+};
+bindPageControls();
+document.addEventListener('livewire:navigated', bindPageControls);

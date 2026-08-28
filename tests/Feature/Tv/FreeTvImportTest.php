@@ -45,7 +45,7 @@ class FreeTvImportTest extends TestCase
         $this->artisan('wavexa:import-tv', ['--country' => 'NG'])->assertSuccessful();
         $channel = Media::query()->firstOrFail();
 
-        $this->get(route('tv.index'))->assertOk()->assertSee('The world, on screen.')->assertSee('Wavexa News');
+        $this->get(route('tv.index'))->assertOk()->assertSee('Live television, beyond borders.')->assertSee('Wavexa News');
         $this->get(route('tv.show', $channel->slug))->assertOk()->assertSee('Wavexa News')->assertSee('Rights review pending');
     }
 

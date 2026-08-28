@@ -8,7 +8,7 @@
     @php($source = $channel->sources->first())
     @php($metadata = $source?->metadata ?? [])
     <section class="bg-slate-950 text-white"><div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <a href="{{ route('tv.index') }}" class="text-sm font-bold text-cyan-300">← Back to live TV</a>
+        <a wire:navigate href="{{ route('tv.index') }}" class="text-sm font-bold text-cyan-300">← Back to live TV</a>
         <div class="mt-5 overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-2xl">
             <div class="relative aspect-video"><video data-tv-player data-stream="{{ $stream->resolved_url ?: $stream->url }}" data-streams="{{ $channel->streamSources->where('status', '!=', \App\Enums\StreamStatus::Offline)->map(fn ($item) => ['id' => $item->id, 'url' => $item->resolved_url ?: $item->url, 'format' => $item->format])->values()->toJson() }}" class="size-full bg-black" controls playsinline preload="metadata"></video><div data-tv-message class="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center"><span class="rounded-2xl bg-slate-950/90 px-5 py-3 text-sm font-bold">Press play to start the live channel</span></div></div>
         </div>

@@ -87,7 +87,7 @@ class RadioBrowserImportTest extends TestCase
 
         $this->get(route('radio.index'))
             ->assertOk()
-            ->assertSee('Radio without borders.')
+            ->assertSee('Hear what the world is listening to.')
             ->assertSee('Wavexa Test Radio');
 
         $this->get(route('radio.show', $station->slug))
