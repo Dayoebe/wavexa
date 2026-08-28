@@ -6,11 +6,11 @@ use App\Enums\StreamStatus;
 use App\Http\Controllers\Controller;
 use App\Models\StreamReport;
 use App\Models\StreamSource;
-use Illuminate\Contracts\View\View;
+use Illuminate\Http\Response;
 
 class StreamHealthController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(): Response
     {
         $summary = [
             'total' => StreamSource::query()->count(),
@@ -22,6 +22,8 @@ class StreamHealthController extends Controller
         $streams = StreamSource::query()->with(['media.country', 'reports'])
             ->orderByDesc('failure_count')->orderBy('last_checked_at')->paginate(30);
 
-        return view('admin.stream-health', compact('summary', 'streams'));
+        return response()
+            ->view('admin.stream-health', compact('summary', 'streams'))
+            ->header('X-Robots-Tag', 'noindex, nofollow, noarchive');
     }
 }
