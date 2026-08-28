@@ -1,111 +1,273 @@
 # Wavexa
 
-Wavexa is a Laravel-based global live-media discovery platform. The application is being developed incrementally; the current codebase contains the Laravel foundation and a versioned API entry point only.
+Wavexa is a mobile-first global live-media discovery platform built with Laravel. It currently provides searchable live radio and television catalogues, geographic discovery, direct provider playback, stream-health monitoring, and source transparency.
+
+Repository: [github.com/Dayoebe/wavexa](https://github.com/Dayoebe/wavexa)
+
+## Features
+
+### Radio
+
+- Imports healthy directory listings from [Radio Browser](https://www.radio-browser.info/)
+- Search by station or location and filter by country, region, genre, language, or format
+- Popularity, location, name, bitrate, and recent-check sorting
+- Trending and recently added discovery
+- Direct playback without proxying provider streams
+- HLS playback, alternative-source fallback, and detailed playback errors
+- Persistent player during internal navigation using Livewire `wire:navigate` and `@persist`
+- Provider click tracking and rate-limited broken-stream reports
+
+### Television
+
+- Imports direct streams from [Free-TV IPTV](https://github.com/Free-TV/IPTV)
+- Search, country filtering, sorting, country context, and geographic-restriction notices
+- HLS playback, alternative-source fallback, and broken-stream reporting
+- Provider page URLs such as YouTube, Twitch, and Dailymotion are skipped until dedicated integrations exist
+
+### Discovery and quality
+
+- Popular-country rails and country pages combining radio and TV
+- Responsive mobile-app-style interface with collapsible filters
+- Incremental country catalogue from provider metadata
+- Idempotent imports with provider and external-identifier provenance
+- Exact duplicate merging and noisy Radio Browser tag removal
+- Language normalization and safe handling of unusually long provider names
+- Quality flags for missing artwork, country, streams, and suspicious names
+
+### Stream monitoring
+
+- Bounded queue batches rather than web-request or whole-catalogue checks
+- HTTP status, response time, content type, failure reason, and last-success tracking
+- Streams become offline after three consecutive failures
+- The scheduler queues the 100 stalest checks every five minutes
+- Authenticated operations dashboard at `/admin/stream-health`
+
+### API
+
+- Versioned API foundation under `/api/v1`
+- Health endpoint: `GET /api/v1/health`
+- Laravel Sanctum installed for future first-party API and mobile authentication
+
+## Technology
+
+- PHP 8.3+, Laravel 13, Livewire 4, and Laravel Sanctum
+- MySQL or MariaDB
+- Database-backed queues, cache, and sessions by default
+- Tailwind CSS 4, Alpine.js, `hls.js`, and Vite 8
 
 ## Requirements
 
-- PHP 8.3 or newer, with the extensions required by Laravel and the selected database driver
+- PHP 8.3 or newer with Laravel's required extensions and a database driver
 - Composer 2
-- Node.js and npm
-- MySQL 8+ for the normal local environment, or SQLite for lightweight development and tests
+- MySQL 8+ or a compatible MariaDB version
+- Node.js 22+ and npm recommended for the current frontend toolchain
+- Git
 
-## Local setup
+SQLite can be used when PHP includes `pdo_sqlite`, but MySQL or MariaDB is the primary development configuration.
+
+## Installation
+
+Clone and install dependencies:
 
 ```bash
+git clone https://github.com/Dayoebe/wavexa.git
+cd wavexa
 composer install
+npm install
+```
+
+Create the environment file and application key:
+
+```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Configure the `DB_*` variables in `.env`. The included example uses SQLite; create the database file when using that default:
+Create an empty database and update `.env`:
+
+```dotenv
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=wavexa
+DB_USERNAME=root
+DB_PASSWORD=
+
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+SESSION_DRIVER=database
+```
+
+Never commit `.env`, credentials, or provider secrets.
+
+Create the schema, seed minimal reference records, and build assets:
 
 ```bash
-touch database/database.sqlite
 php artisan migrate
+php artisan db:seed
 php artisan storage:link
-npm install
 npm run build
 ```
 
-Alternatively, `composer run setup` performs dependency installation, environment initialization, migrations, and the frontend build after the database configuration is ready.
-
-## Development
-
-Run the Laravel development processes together:
-
-```bash
-composer run dev
-```
-
-Or run the web and frontend processes independently:
+Start the application:
 
 ```bash
 php artisan serve
+```
+
+Open [http://localhost:8000](http://localhost:8000).
+
+## Development processes
+
+Run these in separate terminals when actively developing:
+
+```bash
 npm run dev
-```
-
-The public API is versioned under `/api/v1`. Its initial health check is available at:
-
-```text
-GET /api/v1/health
-```
-
-Route responsibilities are separated as follows:
-
-- `routes/web.php`: public browser routes
-- `routes/authenticated.php`: authenticated browser routes
-- `routes/admin.php`: future authenticated admin routes
-- `routes/api.php`: versioned API routes
-
-Sanctum is the API authentication dependency for future first-party mobile and API token flows. Authentication endpoints are intentionally not part of the current foundation stage.
-
-## Quality checks
-
-```bash
-composer test
-vendor/bin/pint --test
-npm run build
-```
-
-Tests use an in-memory SQLite database and do not modify the configured local database.
-
-If the active PHP build does not include `pdo_sqlite`, create a dedicated empty MariaDB database and override the test connection explicitly:
-
-```bash
-DB_CONNECTION=mysql DB_DATABASE=wavexa_testing php artisan test
-```
-
-Never point `RefreshDatabase` tests at the normal development or production database.
-
-## Initial media architecture
-
-The shared `media` table stores common identity, publication state, website, and geographic references. Type-specific tables extend it for radio stations, TV channels, podcasts, and podcast episodes. Categories, genres, and languages use many-to-many relationships, while artwork, metadata provenance, and playback stream sources remain separate concerns.
-
-Long source identifiers, feed URLs, and stream URLs have SHA-256 companion columns for portable unique constraints. The original values are retained in full. Initial reference data can be loaded idempotently with:
-
-```bash
-php artisan db:seed
-```
-
-## Environment services
-
-The defaults use database-backed cache, sessions, and queues. Run migrations before serving the application, and process queued work with:
-
-```bash
 php artisan queue:work
+php artisan schedule:work
 ```
 
-Mail is logged locally by default. Configure `MAIL_*` values only for a real mail provider, and never commit credentials. The local filesystem disk is used by default; `php artisan storage:link` exposes explicitly public files through Laravel's standard public storage link.
+The queue worker processes stream checks. The scheduler dispatches bounded health-check batches. In production, configure Laravel's standard scheduler cron entry and supervise queue workers.
 
-## Radio Browser ingestion
+## Importing media
 
-Wavexa can import technically healthy directory listings from [Radio Browser](https://www.radio-browser.info/). Imports are idempotent by provider and station UUID and preserve the original metadata, synchronization time, stream health fields, and source URL.
+Import globally popular Radio Browser stations in bounded batches:
+
+```bash
+php artisan wavexa:import-radio --limit=500 --offset=0
+php artisan wavexa:import-radio --limit=500 --offset=500
+```
+
+Import a radio selection:
 
 ```bash
 php artisan wavexa:import-radio --country=NG --limit=100
 php artisan wavexa:import-radio --language=English --tag=jazz --limit=50
 ```
 
-Configuration is available through `RADIO_BROWSER_BASE_URL`, `RADIO_BROWSER_TIMEOUT`, and `RADIO_BROWSER_USER_AGENT`. Keep imports bounded and use queues or scheduled batches when the catalog grows.
+Import television:
 
-The public catalog is available at `/radio`. Playback uses the stream provider URL directly; Wavexa does not proxy or redistribute the audio. Radio Browser health is technical evidence only, and imported records retain a separate pending rights-verification state.
+```bash
+php artisan wavexa:import-tv --limit=1000
+php artisan wavexa:import-tv --country=NG --limit=100
+```
+
+Provider settings are configurable in `.env`:
+
+```dotenv
+RADIO_BROWSER_BASE_URL=https://de1.api.radio-browser.info
+RADIO_BROWSER_TIMEOUT=15
+RADIO_BROWSER_USER_AGENT="Wavexa/1.0"
+
+FREE_TV_PLAYLIST_URL=https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8
+FREE_TV_TIMEOUT=30
+FREE_TV_USER_AGENT="Wavexa/1.0"
+```
+
+Imports are idempotent by provider and external identifier. Never run large imports inside web requests.
+
+## Stream-health monitoring
+
+Queue a bounded check batch:
+
+```bash
+php artisan wavexa:check-streams --limit=100
+```
+
+Run a few checks synchronously for local diagnosis:
+
+```bash
+php artisan wavexa:check-streams --limit=5 --sync
+```
+
+The scheduled command requires a running queue worker. Inspect the schedule with:
+
+```bash
+php artisan schedule:list
+```
+
+The `/admin/stream-health` dashboard is protected by `auth`. Public authentication and admin roles are not implemented yet, so complete authorization before exposing admin access.
+
+## Catalogue cleanup
+
+Normalize metadata, set quality flags, and merge conservative exact duplicates:
+
+```bash
+php artisan wavexa:clean-media
+```
+
+Normalize without duplicate merging:
+
+```bash
+php artisan wavexa:clean-media --no-merge
+```
+
+Only exact normalized names sharing the same media type and country merge automatically. Original provider metadata is retained.
+
+## Testing and code quality
+
+Run the full suite:
+
+```bash
+php artisan test
+```
+
+If PHP does not include `pdo_sqlite`, create a separate empty testing database:
+
+```bash
+DB_CONNECTION=mysql DB_DATABASE=wavexa_testing php artisan test
+```
+
+Never point `RefreshDatabase` tests at development or production data.
+
+Additional checks:
+
+```bash
+vendor/bin/pint --test
+php artisan view:cache
+npm run build
+php artisan route:list
+php artisan migrate:status
+```
+
+## Routes and project structure
+
+- `routes/web.php`: public discovery, playback, and reporting
+- `routes/authenticated.php`: authenticated user routes
+- `routes/admin.php`: authenticated operations
+- `routes/api.php`: versioned API
+- `routes/console.php`: scheduler configuration
+
+Important routes:
+
+```text
+GET  /
+GET  /radio
+GET  /radio/{slug}
+GET  /tv
+GET  /tv/{slug}
+GET  /countries/{code}
+POST /streams/{stream}/report
+GET  /api/v1/health
+GET  /admin/stream-health        authenticated
+```
+
+## Playback and rights policy
+
+Wavexa separates media metadata from playback infrastructure. Streams play directly from provider URLs; Wavexa does not proxy, restream, or redistribute media.
+
+A publicly discoverable URL or technical health response does not establish commercial redistribution rights. Imported records retain their source, synchronization metadata, and separate rights-verification status. Production operators must verify the applicable rights and terms.
+
+## Current limitations
+
+- Stream availability and geographic restrictions are provider-controlled.
+- Browsers block insecure HTTP streams on HTTPS pages.
+- Mobile operating systems can suspend audio when backgrounded or under power-saving restrictions.
+- Internal navigation preserves playback. A manual refresh recreates the page, and autoplay policy may require pressing Resume.
+- Authentication UI, admin roles, podcasts, favourites, history, recommendations, and the public mobile API remain future stages.
+
+## License and third-party data
+
+Application code follows the repository's license. Imported metadata and streams remain subject to their original providers' licenses, terms, availability, and rights requirements.
