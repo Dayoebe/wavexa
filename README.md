@@ -271,3 +271,16 @@ A publicly discoverable URL or technical health response does not establish comm
 ## License and third-party data
 
 Application code follows the repository's license. Imported metadata and streams remain subject to their original providers' licenses, terms, availability, and rights requirements.
+
+## Search engine and AI discovery
+
+Wavexa publishes page metadata, JSON-LD, XML sitemaps, an RSS feed, and factual AI-readable guides:
+
+- `/sitemap.xml`
+- `/robots.txt`
+- `/feed.xml`
+- `/llms.txt`
+- `/llms-full.txt`
+- `/ai.txt`
+
+Before production deployment, set `APP_URL` to the exact public HTTPS origin, run `php artisan optimize`, and submit `/sitemap.xml` to the relevant webmaster consoles. See [the SEO and AI discoverability report](docs/seo-ai-discoverability-report.md) for eligibility, validation, and launch notes.
