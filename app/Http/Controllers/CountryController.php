@@ -14,7 +14,9 @@ class CountryController extends Controller
         $country = Country::query()->where('iso_alpha_2', strtoupper($code))->firstOrFail();
         $radioStations = $country->media()->where('type', MediaType::Radio)->where('status', MediaStatus::Published)->orderBy('name')->limit(12)->get();
         $tvChannels = $country->media()->where('type', MediaType::Television)->where('status', MediaStatus::Published)->orderBy('name')->limit(12)->get();
+        $radioCount = $country->media()->where('type', MediaType::Radio)->where('status', MediaStatus::Published)->count();
+        $tvCount = $country->media()->where('type', MediaType::Television)->where('status', MediaStatus::Published)->count();
 
-        return view('countries.show', compact('country', 'radioStations', 'tvChannels'));
+        return view('countries.show', compact('country', 'radioStations', 'tvChannels', 'radioCount', 'tvCount'));
     }
 }

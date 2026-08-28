@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.app')
 @section('title','Live TV Around the World — Wavexa')
 @section('description','Discover free television channels by country and watch supported live streams on Wavexa.')
 @section('content')

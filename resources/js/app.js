@@ -65,25 +65,73 @@ if (radioDock && radioAudio) {
     try { state = JSON.parse(localStorage.getItem('wavexa-player')); if (state?.streams?.length) { showState(); status.textContent = 'Ready to resume'; setPlaying(false); } } catch { localStorage.removeItem('wavexa-player'); }
 }
 
-const initializeTvPlayer = async () => {
-    const player = document.querySelector('[data-tv-player]:not([data-player-bound])'); if (!player) return;
-    player.dataset.playerBound = 'true';
-    const message = document.querySelector('[data-tv-message]'); const streams = parseStreams(player);
-    let index = 0; let hls = null;
-    const load = async () => {
-        if (!streams[index]) { message.classList.remove('hidden'); message.textContent = 'Every available source is offline or unavailable in your location.'; return; }
-        hls?.destroy();
-        try { hls = await attachStream(player, streams[index], () => { index++; load(); }); }
-        catch (error) { message.textContent = error.message === 'mixed-content' ? 'This source is blocked on HTTPS. Trying another…' : 'Trying another source…'; index++; load(); }
+const tvDock = document.querySelector('[data-tv-dock]');
+const tvPlayer = tvDock?.querySelector('[data-tv-player]');
+if (tvDock && tvPlayer) {
+    const message = tvDock.querySelector('[data-tv-message]');
+    const title = tvDock.querySelector('[data-tv-title]');
+    const toggle = tvDock.querySelector('[data-tv-toggle]');
+    const playIcon = tvDock.querySelector('[data-tv-play-icon]');
+    const pauseIcon = tvDock.querySelector('[data-tv-pause-icon]');
+    const expand = tvDock.querySelector('[data-tv-expand]');
+    let state = null; let streamIndex = 0; let hls = null; let closed = true;
+
+    const setPlaying = (playing) => {
+        playIcon?.classList.toggle('hidden', playing);
+        pauseIcon?.classList.toggle('hidden', !playing);
+        toggle?.classList.toggle('hidden', playing);
+        toggle?.setAttribute('aria-label', playing ? 'Pause live TV' : 'Resume live TV');
     };
-    await load();
-    player.addEventListener('playing', () => message?.classList.add('hidden'));
-    player.addEventListener('waiting', () => { message.classList.remove('hidden'); message.textContent = 'Buffering live television…'; });
-};
-initializeTvPlayer();
+    const showDock = () => {
+        closed = false; tvDock.classList.remove('hidden');
+        title.textContent = state?.title || 'Live television';
+    };
+    const loadCurrent = async (autoplay = true) => {
+        const stream = state?.streams?.[streamIndex];
+        if (!stream) { message.classList.remove('hidden'); message.textContent = 'Every available source is offline or unavailable in your location.'; setPlaying(false); return; }
+        hls?.destroy(); tvPlayer.removeAttribute('src');
+        message.classList.remove('hidden');
+        message.textContent = streamIndex ? 'Trying an alternative source…' : 'Connecting to the channel provider…';
+        try {
+            hls = await attachStream(tvPlayer, stream, () => { streamIndex++; loadCurrent(); });
+            if (autoplay) await tvPlayer.play();
+        } catch (error) {
+            message.textContent = error.message === 'mixed-content' ? 'This HTTP source is blocked on HTTPS. Trying another…' : 'Trying another source…';
+            streamIndex++; loadCurrent(autoplay);
+        }
+    };
+    const bindTvButtons = () => document.querySelectorAll('[data-play-tv]:not([data-tv-bound])').forEach((button) => {
+        button.dataset.tvBound = 'true';
+        button.addEventListener('click', async () => {
+            document.querySelector('[data-radio-audio]')?.pause();
+            state = { title: button.dataset.title || 'Live television', streams: parseStreams(button) };
+            streamIndex = 0; showDock(); localStorage.setItem('wavexa-tv-player', JSON.stringify(state)); await loadCurrent();
+        });
+    });
+    bindTvButtons();
+    document.addEventListener('livewire:navigated', bindTvButtons);
+    toggle?.addEventListener('click', () => tvPlayer.paused ? tvPlayer.play().catch(() => loadCurrent()) : tvPlayer.pause());
+    tvDock.querySelector('[data-tv-close]')?.addEventListener('click', async () => {
+        closed = true; hls?.destroy(); tvPlayer.pause(); tvPlayer.removeAttribute('src'); tvPlayer.load();
+        if (document.pictureInPictureElement === tvPlayer) await document.exitPictureInPicture().catch(() => {});
+        tvDock.classList.add('hidden'); tvDock.removeAttribute('data-expanded'); localStorage.removeItem('wavexa-tv-player'); state = null;
+    });
+    tvDock.querySelector('[data-tv-pip]')?.addEventListener('click', async () => {
+        if (!document.pictureInPictureEnabled || tvPlayer.readyState === 0) { message.classList.remove('hidden'); message.textContent = 'Picture-in-picture is not supported by this browser.'; return; }
+        if (document.pictureInPictureElement === tvPlayer) await document.exitPictureInPicture(); else await tvPlayer.requestPictureInPicture();
+    });
+    expand?.addEventListener('click', () => {
+        const expanded = tvDock.toggleAttribute('data-expanded');
+        expand.textContent = expanded ? 'Minimize' : 'Expand'; expand.setAttribute('aria-label', expanded ? 'Minimize player' : 'Expand player');
+    });
+    tvPlayer.addEventListener('playing', () => { message.classList.add('hidden'); setPlaying(true); });
+    tvPlayer.addEventListener('pause', () => { if (!closed) setPlaying(false); });
+    tvPlayer.addEventListener('waiting', () => { message.classList.remove('hidden'); message.textContent = 'Buffering live television…'; });
+    tvPlayer.addEventListener('error', () => { if (!closed && state) { streamIndex++; loadCurrent(); } });
+    try { state = JSON.parse(localStorage.getItem('wavexa-tv-player')); if (state?.streams?.length) { showDock(); message.textContent = 'Ready to resume this channel'; setPlaying(false); } } catch { localStorage.removeItem('wavexa-tv-player'); }
+}
 
 const bindPageControls = () => {
-    initializeTvPlayer();
     document.querySelectorAll('[data-report-stream]:not([data-report-bound])').forEach((button) => {
         button.dataset.reportBound = 'true';
         button.addEventListener('click', async () => {

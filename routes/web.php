@@ -4,11 +4,10 @@ use App\Http\Controllers\CountryController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\StreamReportController;
 use App\Http\Controllers\TvController;
+use App\Livewire\Pages\Home;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', Home::class)->name('home');
 
 Route::get('/radio', [RadioController::class, 'index'])->name('radio.index');
 Route::get('/radio/{slug}', [RadioController::class, 'show'])->name('radio.show');

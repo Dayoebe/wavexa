@@ -46,7 +46,14 @@ class FreeTvImportTest extends TestCase
         $channel = Media::query()->firstOrFail();
 
         $this->get(route('tv.index'))->assertOk()->assertSee('Live television, beyond borders.')->assertSee('Wavexa News');
-        $this->get(route('tv.show', $channel->slug))->assertOk()->assertSee('Wavexa News')->assertSee('Rights review pending');
+        $this->get(route('tv.show', $channel->slug))->assertOk()
+            ->assertSee('Wavexa News')
+            ->assertSee('Rights review pending')
+            ->assertSee('data-play-tv', false)
+            ->assertSee('data-tv-dock', false)
+            ->assertSee('x-persist="wavexa-tv-player"', false);
+
+        $this->get(route('home'))->assertOk()->assertSee('data-tv-dock', false);
     }
 
     private function playlist(): string

@@ -15,6 +15,32 @@ body {
     overflow-x: clip;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
+body {
+    background: #fcfbf8;
+}
+
+button,
+a,
+input,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+    transition-duration: 180ms;
+}
+
+:focus-visible {
+    outline: 3px solid var(--color-orange-300);
+    outline-offset: 3px;
+}
+
 h1,
 h2,
 h3,
@@ -40,4 +66,16 @@ video {
 
 .wavexa-rail::-webkit-scrollbar {
     display: none;
+}
+
+[data-tv-dock][data-expanded] {
+    inset: 0.75rem;
+    bottom: 6rem;
+}
+
+@media (min-width: 768px) {
+    [data-tv-dock][data-expanded] {
+        inset: auto 1.25rem 1.25rem auto;
+        width: min(780px, calc(100vw - 2.5rem));
+    }
 }

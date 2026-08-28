@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.app')
 @section('title', 'Live Radio Around the World — Wavexa')
 @section('description', 'Browse and listen to directory-listed live radio stations by country, genre, and language on Wavexa.')
 @section('content')

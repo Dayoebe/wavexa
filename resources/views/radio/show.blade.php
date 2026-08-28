@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.app')
 
 @section('title', $station->name.' — Live Radio on Wavexa')
 @section('description', 'Listen to '.$station->name.' live and view its available station, source, language, genre, and stream details.')
