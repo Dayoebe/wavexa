@@ -12,6 +12,7 @@ use App\Models\Media;
 use App\Models\RadioStation;
 use App\Models\StreamSource;
 use App\Services\RadioBrowser\RadioBrowserClient;
+use App\Support\MediaDiscoveryOrder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -29,10 +30,10 @@ class RadioController extends Controller
             'genre' => ['nullable', 'string', Rule::exists('genres', 'slug')],
             'language' => ['nullable', 'integer', Rule::exists('languages', 'id')],
             'codec' => ['nullable', 'string', 'max:32'],
-            'sort' => ['nullable', Rule::in(['popular', 'location', 'name_asc', 'name_desc', 'bitrate', 'recent'])],
+            'sort' => ['nullable', Rule::in(['recommended', 'popular', 'location', 'name_asc', 'name_desc', 'bitrate', 'recent'])],
         ]);
 
-        $sort = $filters['sort'] ?? 'popular';
+        $sort = $filters['sort'] ?? 'recommended';
         $stations = Media::query()
             ->where('type', MediaType::Radio)
             ->where('status', MediaStatus::Published)
@@ -64,6 +65,9 @@ class RadioController extends Controller
             ));
 
         match ($sort) {
+            'recommended' => MediaDiscoveryOrder::countriesFirst($stations)
+                ->orderByDesc(RadioStation::query()->select('source_vote_count')->whereColumn('radio_stations.media_id', 'media.id'))
+                ->orderBy('name'),
             'location' => $stations
                 ->orderBy(Country::query()->select('name')->whereColumn('countries.id', 'media.country_id'))
                 ->orderBy(RadioStation::query()->select('source_state')->whereColumn('radio_stations.media_id', 'media.id'))

@@ -9,7 +9,7 @@
                 <form wire:submit="applyFilters" :class="open ? 'grid' : 'hidden sm:grid'" class="mt-3 gap-2 rounded-2xl border border-stone-300 bg-white p-2 shadow-lg shadow-slate-900/5 sm:mt-8 sm:grid-cols-[2fr_1fr_1fr_auto]">
                     <label class="relative"><span class="sr-only">Search TV channels</span><input wire:model.live.debounce.300ms="q" autocomplete="off" placeholder="Search a TV channel" class="min-h-14 w-full rounded-[18px] border-0 bg-stone-100 px-4 pr-11 text-base outline-none"><span wire:loading wire:target="q" class="absolute right-4 top-1/2 size-4 -translate-y-1/2 animate-spin rounded-full border-2 border-cyan-600 border-r-transparent" aria-label="Searching"></span></label>
                     <select wire:model.live="country" class="min-h-14 rounded-[18px] border-0 bg-stone-100 px-4 font-bold"><option value="">Every country</option>@foreach($countries as $item)<option value="{{ $item->iso_alpha_2 }}">{{ $item->name }}</option>@endforeach</select>
-                    <select wire:model.live="sort" class="min-h-14 rounded-[18px] border-0 bg-stone-100 px-4 font-bold"><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="country">Country A–Z</option></select>
+                    <select wire:model.live="sort" class="min-h-14 rounded-[18px] border-0 bg-stone-100 px-4 font-bold"><option value="recommended">Nigeria first</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="country">Country A–Z</option></select>
                     <button class="rounded-[18px] bg-cyan-600 px-6 py-3 font-extrabold text-white" wire:loading.attr="disabled">Apply</button>
                 </form>
             </div>
@@ -24,7 +24,7 @@
 
     <section id="channels" class="bg-stone-50 py-10 sm:py-14">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" wire:loading.class="opacity-60">
-            <div class="flex items-end justify-between"><div><p class="text-[11px] font-extrabold uppercase tracking-[.2em] text-cyan-700">On air</p><h2 class="mt-1 text-2xl font-extrabold sm:text-3xl">{{ $q !== '' ? 'Results for “'.$q.'”' : 'Choose a channel' }}</h2><p wire:loading wire:target="q" class="mt-1 text-xs font-semibold text-cyan-700">Searching channels…</p></div>@if($q !== '' || $country !== '' || $sort !== 'name_asc')<button wire:click="clearFilters" class="rounded-full bg-stone-200 px-3 py-2 text-xs font-bold">Clear filters</button>@endif</div>
+            <div class="flex items-end justify-between"><div><p class="text-[11px] font-extrabold uppercase tracking-[.2em] text-cyan-700">On air</p><h2 class="mt-1 text-2xl font-extrabold sm:text-3xl">{{ $q !== '' ? 'Results for “'.$q.'”' : 'Choose a channel' }}</h2><p wire:loading wire:target="q" class="mt-1 text-xs font-semibold text-cyan-700">Searching channels…</p></div>@if($q !== '' || $country !== '' || $sort !== 'recommended')<button wire:click="clearFilters" class="rounded-full bg-stone-200 px-3 py-2 text-xs font-bold">Clear filters</button>@endif</div>
             @if($channels->isEmpty())
                 <div class="mt-8 rounded-[28px] border border-dashed border-stone-300 bg-white p-10 text-center"><h3 class="text-xl font-extrabold">No channels found</h3><p class="mt-2 text-sm text-slate-500">Try another country or a broader channel name.</p></div>
             @else

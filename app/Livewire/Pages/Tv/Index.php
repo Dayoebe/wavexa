@@ -6,6 +6,7 @@ use App\Enums\MediaStatus;
 use App\Enums\MediaType;
 use App\Models\Country;
 use App\Models\Media;
+use App\Support\MediaDiscoveryOrder;
 use App\Support\Seo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
@@ -25,15 +26,15 @@ class Index extends Component
     #[Url(except: '')]
     public string $country = '';
 
-    #[Url(except: 'name_asc')]
-    public string $sort = 'name_asc';
+    #[Url(except: 'recommended')]
+    public string $sort = 'recommended';
 
     public function applyFilters(): void
     {
         $this->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'size:2'],
-            'sort' => ['required', 'in:name_asc,name_desc,country'],
+            'sort' => ['required', 'in:recommended,name_asc,name_desc,country'],
         ]);
 
         $this->resetPage();
@@ -42,7 +43,7 @@ class Index extends Component
     public function clearFilters(): void
     {
         $this->reset(['q', 'country']);
-        $this->sort = 'name_asc';
+        $this->sort = 'recommended';
         $this->resetPage();
     }
 
@@ -66,6 +67,7 @@ class Index extends Component
             ));
 
         match ($this->sort) {
+            'recommended' => MediaDiscoveryOrder::countriesFirst($channels)->orderBy('name'),
             'name_desc' => $channels->orderByDesc('name'),
             'country' => $channels->orderBy(Country::query()->select('name')->whereColumn('countries.id', 'media.country_id'))->orderBy('name'),
             default => $channels->orderBy('name'),
