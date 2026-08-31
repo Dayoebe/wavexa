@@ -15,9 +15,36 @@ const attachStream = async (media, stream, onFatal) => {
     if (!isHls || media.canPlayType('application/vnd.apple.mpegurl')) { media.src = stream.url; return null; }
     const { default: Hls } = await import('hls.js');
     if (!Hls.isSupported()) throw new Error('unsupported');
-    const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+    const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        capLevelToPlayerSize: true,
+        startFragPrefetch: true,
+        liveSyncDurationCount: 5,
+        liveMaxLatencyDurationCount: 12,
+        maxBufferLength: 60,
+        maxMaxBufferLength: 120,
+        backBufferLength: 30,
+        manifestLoadingTimeOut: 15000,
+        fragLoadingTimeOut: 25000,
+    });
+    let networkRecoveries = 0;
+    let mediaRecoveries = 0;
     hls.loadSource(stream.url); hls.attachMedia(media);
-    hls.on(Hls.Events.ERROR, (_event, data) => data.fatal && onFatal());
+    hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (!data.fatal) return;
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR && networkRecoveries < 2) {
+            networkRecoveries++;
+            setTimeout(() => hls.startLoad(), 750 * networkRecoveries);
+            return;
+        }
+        if (data.type === Hls.ErrorTypes.MEDIA_ERROR && mediaRecoveries < 2) {
+            mediaRecoveries++;
+            hls.recoverMediaError();
+            return;
+        }
+        onFatal();
+    });
     return hls;
 };
 
@@ -83,7 +110,31 @@ if (tvDock && tvPlayer) {
     const playIcon = tvDock.querySelector('[data-tv-play-icon]');
     const pauseIcon = tvDock.querySelector('[data-tv-pause-icon]');
     const expand = tvDock.querySelector('[data-tv-expand]');
-    let state = null; let streamIndex = 0; let hls = null; let closed = true;
+    let state = null; let streamIndex = 0; let hls = null; let closed = true; let playbackTimer = null; let stallTimer = null;
+
+    const clearPlaybackTimers = () => {
+        clearTimeout(playbackTimer);
+        clearTimeout(stallTimer);
+        playbackTimer = null;
+        stallTimer = null;
+    };
+
+    const watchPlaybackStart = () => {
+        clearTimeout(playbackTimer);
+        playbackTimer = setTimeout(() => {
+            if (closed || !state || !tvPlayer.paused && tvPlayer.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return;
+            if (state.streams[streamIndex + 1]) {
+                streamIndex++;
+                message.textContent = 'The first source is too slow. Trying an alternative…';
+                loadCurrent();
+                return;
+            }
+            tvPlayer.pause();
+            message.classList.remove('hidden');
+            message.textContent = 'This provider is responding too slowly. Press play to retry.';
+            setPlaying(false);
+        }, 25000);
+    };
 
     const syncTvPlacement = () => {
         const host = document.querySelector('[data-tv-inline-host]');
@@ -113,6 +164,7 @@ if (tvDock && tvPlayer) {
         requestAnimationFrame(syncTvPlacement);
     };
     const loadCurrent = async (autoplay = true) => {
+        clearPlaybackTimers();
         const stream = state?.streams?.[streamIndex];
         if (!stream) { message.classList.remove('hidden'); message.textContent = 'Every available source is offline or unavailable in your location.'; setPlaying(false); return; }
         hls?.destroy(); tvPlayer.removeAttribute('src');
@@ -120,9 +172,9 @@ if (tvDock && tvPlayer) {
         message.textContent = streamIndex ? 'Trying an alternative source…' : 'Connecting to the channel provider…';
         try {
             hls = await attachStream(tvPlayer, stream, () => { streamIndex++; loadCurrent(); });
-            if (autoplay) await tvPlayer.play();
+            if (autoplay) { watchPlaybackStart(); await tvPlayer.play(); }
         } catch (error) {
-            if (error.name === 'NotAllowedError') { message.textContent = 'Ready to play. Press play to start watching.'; setPlaying(false); return; }
+            if (error.name === 'NotAllowedError') { clearPlaybackTimers(); message.textContent = 'Ready to play. Press play to start watching.'; setPlaying(false); return; }
             message.textContent = error.message === 'mixed-content' ? 'This HTTP source is blocked on HTTPS. Trying another…' : 'Trying another source…';
             streamIndex++; loadCurrent(autoplay);
         }
@@ -146,9 +198,11 @@ if (tvDock && tvPlayer) {
     document.addEventListener('livewire:navigated', () => { bindTvButtons(); requestAnimationFrame(syncTvPlacement); });
     window.addEventListener('scroll', syncTvPlacement, { passive: true });
     window.addEventListener('resize', syncTvPlacement, { passive: true });
-    toggle?.addEventListener('click', () => tvPlayer.paused ? tvPlayer.play().catch(() => loadCurrent()) : tvPlayer.pause());
+    toggle?.addEventListener('click', () => {
+        if (tvPlayer.paused) { watchPlaybackStart(); tvPlayer.play().catch(() => loadCurrent()); } else tvPlayer.pause();
+    });
     tvDock.querySelector('[data-tv-close]')?.addEventListener('click', async () => {
-        closed = true; hls?.destroy(); tvPlayer.pause(); tvPlayer.removeAttribute('src'); tvPlayer.load();
+        closed = true; clearPlaybackTimers(); hls?.destroy(); tvPlayer.pause(); tvPlayer.removeAttribute('src'); tvPlayer.load();
         if (document.pictureInPictureElement === tvPlayer) await document.exitPictureInPicture().catch(() => {});
         tvDock.classList.add('hidden'); tvDock.removeAttribute('data-expanded'); tvDock.removeAttribute('data-inline'); state = null;
     });
@@ -162,9 +216,18 @@ if (tvDock && tvPlayer) {
         expand.textContent = expanded ? 'Minimize' : 'Expand'; expand.setAttribute('aria-label', expanded ? 'Minimize player' : 'Expand player');
         if (!expanded) requestAnimationFrame(syncTvPlacement);
     });
-    tvPlayer.addEventListener('playing', () => { message.classList.add('hidden'); setPlaying(true); });
-    tvPlayer.addEventListener('pause', () => { if (!closed) setPlaying(false); });
-    tvPlayer.addEventListener('waiting', () => { message.classList.remove('hidden'); message.textContent = 'Buffering live television…'; });
+    tvPlayer.addEventListener('playing', () => { clearPlaybackTimers(); message.classList.add('hidden'); setPlaying(true); });
+    tvPlayer.addEventListener('pause', () => { clearPlaybackTimers(); if (!closed) setPlaying(false); });
+    tvPlayer.addEventListener('waiting', () => {
+        message.classList.remove('hidden'); message.textContent = 'Stabilizing the live stream…';
+        clearTimeout(stallTimer);
+        stallTimer = setTimeout(() => {
+            if (closed || !state || tvPlayer.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return;
+            hls?.startLoad();
+            tvPlayer.play().catch(() => {});
+            message.textContent = 'Recovering the provider connection…';
+        }, 15000);
+    });
     tvPlayer.addEventListener('error', () => { if (!closed && state) { streamIndex++; loadCurrent(); } });
     localStorage.removeItem('wavexa-tv-player');
 }
