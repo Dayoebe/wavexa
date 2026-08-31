@@ -64,7 +64,7 @@ class RadioCatalogueTest extends TestCase
         $this->assertSame([$genre->id], $station->genres->modelKeys());
         $this->assertSame(1, $station->languages->first()->pivot->is_primary);
 
-        $this->get(route('admin.radio.show', $station))->assertOk()->assertSee('Lagos Live Radio')->assertSee('Source provenance');
+        $this->get(route('admin.radio.show', $station))->assertOk()->assertSee('Lagos Live Radio')->assertSee('Source provenance')->assertSee('data-play-station', false)->assertSee('data-radio-dock', false);
 
         Livewire::test(Form::class, ['station' => $station])
             ->set('name', 'Lagos Live FM')

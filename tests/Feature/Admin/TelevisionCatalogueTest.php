@@ -4,6 +4,8 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\MediaStatus;
 use App\Enums\MediaType;
+use App\Livewire\Admin\Television\DataQuality;
+use App\Livewire\Admin\Television\Duplicates;
 use App\Livewire\Admin\Television\Form;
 use App\Livewire\Admin\Television\Index;
 use App\Models\Category;
@@ -11,6 +13,7 @@ use App\Models\Country;
 use App\Models\Language;
 use App\Models\Media;
 use App\Models\User;
+use App\Services\Media\MediaQualityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -41,7 +44,7 @@ class TelevisionCatalogueTest extends TestCase
         $this->assertSame('LNTV', $channel->tvChannel->call_sign);
         $this->assertSame('hls', $channel->primaryStream->format);
         $this->assertSame([$category->id], $channel->categories->modelKeys());
-        $this->get(route('admin.television.show', $channel))->assertOk()->assertSee('Lagos News TV')->assertSee('Source provenance');
+        $this->get(route('admin.television.show', $channel))->assertOk()->assertSee('Lagos News TV')->assertSee('Source provenance')->assertSee('data-play-tv', false)->assertSee('data-tv-inline-host', false)->assertSee('data-tv-dock', false);
 
         Livewire::test(Form::class, ['channel' => $channel])->set('name', 'Lagos News HD')->set('callSign', 'LNHD')->call('save')->assertHasNoErrors();
         $this->assertDatabaseHas('media', ['id' => $channel->id, 'name' => 'Lagos News HD']);
@@ -56,5 +59,41 @@ class TelevisionCatalogueTest extends TestCase
     public function test_non_admin_cannot_access_tv_management(): void
     {
         $this->actingAs(User::factory()->create())->get(route('admin.television.index'))->assertForbidden();
+    }
+
+    public function test_admin_can_review_and_merge_an_exact_tv_duplicate_group(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $country = Country::query()->create(['name' => 'Nigeria', 'iso_alpha_2' => 'NG', 'iso_alpha_3' => 'NGA']);
+        $first = $this->channel('Wave TV', 'wave-tv', $country->id);
+        $duplicate = $this->channel('Wave-TV', 'wave-tv-copy', $country->id);
+        $first->streamSources()->create($this->stream('https://tv.example.test/one.m3u8', true));
+        $duplicate->streamSources()->create($this->stream('https://tv.example.test/two.m3u8'));
+        $signature = app(MediaQualityService::class)->duplicateSignature($first);
+
+        Livewire::test(Duplicates::class)->assertSee('Wave TV')->set('survivors.'.$signature, $first->id)->call('merge', $signature)->assertHasNoErrors();
+        $this->assertSoftDeleted('media', ['id' => $duplicate->id]);
+        $this->assertSame(2, $first->fresh()->streamSources()->count());
+    }
+
+    public function test_tv_data_quality_queue_exposes_missing_metadata(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $channel = $this->channel('Incomplete TV', 'incomplete-tv');
+        Livewire::test(DataQuality::class)->assertSee('Incomplete TV')->assertSee('missing country')->assertSee('missing artwork')->assertSee('missing stream');
+        $this->get(route('admin.television.edit', $channel))->assertOk()->assertSee('Edit channel');
+    }
+
+    private function channel(string $name, string $slug, ?int $countryId = null): Media
+    {
+        $channel = Media::query()->create(['type' => MediaType::Television, 'status' => MediaStatus::Published, 'name' => $name, 'slug' => $slug, 'country_id' => $countryId]);
+        $channel->tvChannel()->create();
+
+        return $channel;
+    }
+
+    private function stream(string $url, bool $primary = false): array
+    {
+        return ['url' => $url, 'url_hash' => hash('sha256', $url), 'protocol' => 'https', 'format' => 'hls', 'status' => 'online', 'verification_status' => 'verified', 'is_primary' => $primary];
     }
 }
