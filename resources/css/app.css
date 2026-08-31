@@ -103,6 +103,11 @@ video {
     [data-tv-dock]:not([data-inline]) {
         bottom: 5.75rem;
     }
+
+    [data-dashboard] [data-tv-dock]:not([data-inline]),
+    [data-dashboard] [data-radio-dock] {
+        bottom: 0.75rem;
+    }
 }
 
 @media (min-width: 768px) {
