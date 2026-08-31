@@ -9,8 +9,8 @@ return [
             ['label' => 'Radio', 'icon' => 'radio', 'active' => 'admin.radio.*', 'children' => [
                 ['label' => 'All stations', 'route' => 'admin.radio.index', 'active' => 'admin.radio.index'], ['label' => 'Add station', 'route' => 'admin.radio.create', 'active' => 'admin.radio.create'], ['label' => 'Duplicates', 'route' => 'admin.radio.duplicates', 'active' => 'admin.radio.duplicates'], ['label' => 'Data quality', 'route' => 'admin.radio.data-quality', 'active' => 'admin.radio.data-quality'],
             ]],
-            ['label' => 'Television', 'icon' => 'tv', 'children' => [
-                ['label' => 'All channels'], ['label' => 'Add channel'], ['label' => 'Duplicates'], ['label' => 'Data quality'],
+            ['label' => 'Television', 'icon' => 'tv', 'active' => 'admin.television.*', 'children' => [
+                ['label' => 'All channels', 'route' => 'admin.television.index', 'active' => 'admin.television.index'], ['label' => 'Add channel', 'route' => 'admin.television.create', 'active' => 'admin.television.create'], ['label' => 'Duplicates'], ['label' => 'Data quality'],
             ]],
             ['label' => 'Podcasts', 'icon' => 'podcast', 'children' => [
                 ['label' => 'All podcasts'], ['label' => 'Add podcast'], ['label' => 'Episodes'], ['label' => 'RSS feeds'],
