@@ -94,6 +94,7 @@ class RadioBrowserImportTest extends TestCase
             ->assertOk()
             ->assertSee('Wavexa Test Radio')
             ->assertSee('Rights review pending')
+            ->assertSee('data-autoplay', false)
             ->assertSee('AAC');
     }
 
@@ -134,7 +135,7 @@ class RadioBrowserImportTest extends TestCase
             ->assertSee('Gauteng')
             ->assertSee('English')
             ->assertSee('Afrikaans')
-            ->assertSeeInOrder(['Zulu Radio', 'Wavexa Test Radio']);
+            ->assertSeeInOrder(['Wavexa Test Radio', 'Zulu Radio']);
 
         $english = Language::query()->where('iso_639_3', 'eng')->firstOrFail();
 

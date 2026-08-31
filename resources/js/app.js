@@ -40,16 +40,24 @@ if (radioDock && radioAudio) {
         hls?.destroy(); radioAudio.removeAttribute('src');
         status.textContent = streamIndex ? 'Trying an alternative source…' : 'Connecting to the provider…';
         try { hls = await attachStream(radioAudio, stream, () => { streamIndex++; loadCurrent(); }); if (autoplay) await radioAudio.play(); }
-        catch (error) { status.textContent = error.message === 'mixed-content' ? 'HTTP stream blocked. Trying another source…' : 'Trying another source…'; streamIndex++; loadCurrent(autoplay); }
+        catch (error) {
+            if (error.name === 'NotAllowedError') { status.textContent = 'Ready to play. Press play to start listening.'; setPlaying(false); return; }
+            status.textContent = error.message === 'mixed-content' ? 'HTTP stream blocked. Trying another source…' : 'Trying another source…'; streamIndex++; loadCurrent(autoplay);
+        }
     };
     const bindRadioButtons = () => document.querySelectorAll('[data-play-station]:not([data-player-bound])').forEach((button) => {
         button.dataset.playerBound = 'true';
         button.addEventListener('click', async () => {
+            if (state?.slug === button.dataset.slug && !radioAudio.paused) { showState(); return; }
             document.querySelector('[data-tv-close]')?.click();
             state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button) };
             streamIndex = 0; showState(); await loadCurrent();
             fetch(`/radio/${encodeURIComponent(state.slug)}/play`, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
         });
+        if (button.hasAttribute('data-autoplay') && !button.hasAttribute('data-autoplay-started')) {
+            button.setAttribute('data-autoplay-started', '');
+            queueMicrotask(() => button.click());
+        }
     });
     bindRadioButtons();
     document.addEventListener('livewire:navigated', bindRadioButtons);
@@ -114,6 +122,7 @@ if (tvDock && tvPlayer) {
             hls = await attachStream(tvPlayer, stream, () => { streamIndex++; loadCurrent(); });
             if (autoplay) await tvPlayer.play();
         } catch (error) {
+            if (error.name === 'NotAllowedError') { message.textContent = 'Ready to play. Press play to start watching.'; setPlaying(false); return; }
             message.textContent = error.message === 'mixed-content' ? 'This HTTP source is blocked on HTTPS. Trying another…' : 'Trying another source…';
             streamIndex++; loadCurrent(autoplay);
         }
@@ -121,11 +130,16 @@ if (tvDock && tvPlayer) {
     const bindTvButtons = () => document.querySelectorAll('[data-play-tv]:not([data-tv-bound])').forEach((button) => {
         button.dataset.tvBound = 'true';
         button.addEventListener('click', async () => {
+            if (state?.slug === button.dataset.slug && !tvPlayer.paused) { showDock(); return; }
             document.querySelector('[data-radio-audio]')?.pause();
             document.querySelector('[data-radio-dock]')?.classList.add('hidden');
             state = { slug: button.dataset.slug, title: button.dataset.title || 'Live television', streams: parseStreams(button) };
             streamIndex = 0; showDock(); await loadCurrent();
         });
+        if (button.hasAttribute('data-autoplay') && !button.hasAttribute('data-autoplay-started')) {
+            button.setAttribute('data-autoplay-started', '');
+            queueMicrotask(() => button.click());
+        }
     });
     bindTvButtons();
     document.addEventListener('livewire:navigating', () => tvDock.removeAttribute('data-inline'));
