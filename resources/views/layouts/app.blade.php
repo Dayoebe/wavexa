@@ -6,7 +6,7 @@
             $seoDescription = \App\Support\Seo::description($description ?? trim($__env->yieldContent('description', 'Discover live radio and supported live television streams from around the world with Wavexa.')));
             $seoCanonical = $canonical ?? trim($__env->yieldContent('canonical', \App\Support\Seo::canonical()));
             $seoImage = \App\Support\Seo::image($metaImage ?? (trim($__env->yieldContent('meta_image')) ?: null));
-            $seoRobots = request()->query() === [] ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' : 'noindex, follow';
+            $seoRobots = $robots ?? (request()->query() === [] ? 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' : 'noindex, follow');
             $seoSchema = $structuredData ?? (trim($__env->yieldContent('structured_data')) ?: \App\Support\Seo::schema($seoTitle, $seoDescription, $seoCanonical));
         @endphp
         <meta charset="utf-8">
@@ -14,7 +14,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="theme-color" content="#fafaf9">
         <meta name="description" content="{{ $seoDescription }}">
-        <meta name="robots" content="@yield('robots', $seoRobots)">
+        <meta name="robots" content="{{ $seoRobots }}">
         <link rel="canonical" href="{{ $seoCanonical }}">
         <link rel="alternate" type="application/rss+xml" title="Wavexa recently added live media" href="{{ \App\Support\Seo::siteUrl('feed.xml') }}">
         <meta property="og:type" content="website"><meta property="og:site_name" content="Wavexa"><meta property="og:locale" content="en_US">
@@ -41,7 +41,16 @@
                     <a wire:navigate href="{{ route('radio.index') }}" class="border-b-2 py-2 {{ request()->routeIs('radio.*') ? 'border-orange-600 text-slate-950' : 'border-transparent text-slate-500 hover:text-slate-950' }}">Live radio</a>
                     <a wire:navigate href="{{ route('tv.index') }}" class="border-b-2 py-2 {{ request()->routeIs('tv.*') ? 'border-cyan-600 text-slate-950' : 'border-transparent text-slate-500 hover:text-slate-950' }}">Live TV</a><span class="py-2 text-slate-300">Podcasts <small class="ml-1 text-[8px] uppercase">Soon</small></span>
                 </nav>
-                <button type="button" @click="searchOpen = true; $nextTick(() => $refs.globalSearch.focus())" class="grid size-11 place-items-center rounded-full border border-stone-300 bg-white text-slate-700 shadow-sm" aria-label="Open search"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="searchOpen = true; $nextTick(() => $refs.globalSearch.focus())" class="grid size-11 place-items-center rounded-full border border-stone-300 bg-white text-slate-700 shadow-sm" aria-label="Open search"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+                    @guest
+                        <a wire:navigate href="{{ route('login') }}" class="grid size-11 place-items-center rounded-full border border-stone-300 bg-white text-slate-700 sm:hidden" aria-label="Sign in"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
+                        <a wire:navigate href="{{ route('login') }}" class="hidden rounded-xl px-3 py-2 text-sm font-bold text-slate-600 sm:inline-flex">Sign in</a><a wire:navigate href="{{ route('register') }}" class="hidden rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-extrabold text-white sm:inline-flex">Create account</a>
+                    @else
+                        @if(auth()->user()->is_admin)<a wire:navigate href="{{ route('admin.dashboard') }}" class="hidden rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-extrabold text-white sm:inline-flex">Dashboard</a>@endif
+                        <form method="POST" action="{{ route('logout') }}">@csrf<button class="grid size-11 place-items-center rounded-full bg-orange-100 text-sm font-extrabold text-orange-800" aria-label="Sign out {{ auth()->user()->name }}">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</button></form>
+                    @endguest
+                </div>
             </div>
         </header>
 

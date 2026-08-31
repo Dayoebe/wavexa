@@ -42,10 +42,10 @@ class StreamHealthTest extends TestCase
         $this->assertDatabaseHas('stream_reports', ['stream_source_id' => $stream->id, 'reason' => 'buffering']);
     }
 
-    public function test_authenticated_user_can_view_health_summary(): void
+    public function test_admin_can_view_health_summary(): void
     {
         $this->stream();
-        $this->actingAs(User::factory()->create())->get(route('admin.stream-health'))->assertOk()->assertSee('Stream health');
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.stream-health'))->assertOk()->assertSee('Stream health');
     }
 
     private function stream(): StreamSource

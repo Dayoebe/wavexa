@@ -8,6 +8,31 @@ use Illuminate\Support\Str;
 
 class MediaQualityService
 {
+    public function duplicateSignature(Media $media): string
+    {
+        return implode('|', [
+            $media->type->value,
+            $media->country_id ?: 'global',
+            Str::lower(preg_replace('/[^\pL\pN]+/u', '', $media->name)),
+        ]);
+    }
+
+    /** @param list<int> $stationIds */
+    public function mergeRadioGroup(array $stationIds, int $targetId): int
+    {
+        $stations = Media::query()->where('type', \App\Enums\MediaType::Radio)
+            ->whereIn('id', $stationIds)->with(['categories', 'genres', 'languages', 'radioStation'])->get();
+        $target = $stations->firstWhere('id', $targetId);
+        abort_unless($target && $stations->count() === count(array_unique($stationIds)), 422);
+        abort_unless($stations->map(fn (Media $station) => $this->duplicateSignature($station))->unique()->count() === 1, 422);
+
+        foreach ($stations->where('id', '!=', $targetId) as $duplicate) {
+            $this->mergeInto($target, $duplicate);
+        }
+
+        return max(0, $stations->count() - 1);
+    }
+
     /** @return array{genres_removed:int, flagged:int, merged:int} */
     public function clean(bool $merge = true): array
     {
@@ -57,29 +82,42 @@ class MediaQualityService
     private function mergeExactDuplicates(): int
     {
         $merged = 0;
-        Media::query()->with(['categories', 'genres', 'languages'])->get()->groupBy(fn (Media $media) => implode('|', [
-            $media->type->value, $media->country_id ?: 'global', Str::lower(preg_replace('/[^\pL\pN]+/u', '', $media->name)),
-        ]))->filter(fn ($group) => $group->count() > 1)->each(function ($group) use (&$merged): void {
+        Media::query()->with(['categories', 'genres', 'languages'])->get()->groupBy(fn (Media $media) => $this->duplicateSignature($media))->filter(fn ($group) => $group->count() > 1)->each(function ($group) use (&$merged): void {
             $target = $group->sortBy('id')->first();
             foreach ($group->where('id', '!=', $target->id) as $duplicate) {
-                DB::transaction(function () use ($target, $duplicate): void {
-                    $duplicate->sources()->update(['media_id' => $target->id]);
-                    foreach ($duplicate->streamSources()->withTrashed()->get() as $stream) {
-                        $target->streamSources()->withTrashed()->where('url_hash', $stream->url_hash)->exists()
-                            ? $stream->forceDelete() : $stream->update(['media_id' => $target->id]);
-                    }
-                    $duplicate->artworks()->update(['media_id' => $target->id]);
-                    $target->categories()->syncWithoutDetaching($duplicate->categories->modelKeys());
-                    $target->genres()->syncWithoutDetaching($duplicate->genres->modelKeys());
-                    $target->languages()->syncWithoutDetaching($duplicate->languages->mapWithKeys(fn ($language) => [$language->id => ['is_primary' => false]])->all());
-                    $duplicate->radioStation()->delete();
-                    $duplicate->tvChannel()->delete();
-                    $duplicate->delete();
-                });
+                $this->mergeInto($target, $duplicate);
                 $merged++;
             }
         });
 
         return $merged;
+    }
+
+    private function mergeInto(Media $target, Media $duplicate): void
+    {
+        DB::transaction(function () use ($target, $duplicate): void {
+            $target->fill([
+                'description' => $target->description ?: $duplicate->description,
+                'website_url' => $target->website_url ?: $duplicate->website_url,
+                'administrative_area_id' => $target->administrative_area_id ?: $duplicate->administrative_area_id,
+                'city_id' => $target->city_id ?: $duplicate->city_id,
+            ])->save();
+            $duplicate->sources()->update(['media_id' => $target->id]);
+            foreach ($duplicate->streamSources()->withTrashed()->get() as $stream) {
+                $target->streamSources()->withTrashed()->where('url_hash', $stream->url_hash)->exists()
+                    ? $stream->forceDelete() : $stream->update(['media_id' => $target->id, 'is_primary' => false]);
+            }
+            if ($target->artworks()->where('is_primary', true)->exists()) {
+                $duplicate->artworks()->update(['media_id' => $target->id, 'is_primary' => false]);
+            } else {
+                $duplicate->artworks()->update(['media_id' => $target->id]);
+            }
+            $target->categories()->syncWithoutDetaching($duplicate->categories->modelKeys());
+            $target->genres()->syncWithoutDetaching($duplicate->genres->modelKeys());
+            $target->languages()->syncWithoutDetaching($duplicate->languages->mapWithKeys(fn ($language) => [$language->id => ['is_primary' => false]])->all());
+            $duplicate->radioStation()->delete();
+            $duplicate->tvChannel()->delete();
+            $duplicate->delete();
+        });
     }
 }
