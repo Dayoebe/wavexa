@@ -21,17 +21,29 @@ class MediaQualityService
     /** @param list<int> $stationIds */
     public function mergeRadioGroup(array $stationIds, int $targetId): int
     {
-        $stations = Media::query()->where('type', MediaType::Radio)
-            ->whereIn('id', $stationIds)->with(['categories', 'genres', 'languages', 'radioStation'])->get();
-        $target = $stations->firstWhere('id', $targetId);
-        abort_unless($target && $stations->count() === count(array_unique($stationIds)), 422);
-        abort_unless($stations->map(fn (Media $station) => $this->duplicateSignature($station))->unique()->count() === 1, 422);
+        return $this->mergeGroup($stationIds, $targetId, MediaType::Radio);
+    }
 
-        foreach ($stations->where('id', '!=', $targetId) as $duplicate) {
+    /** @param list<int> $channelIds */
+    public function mergeTelevisionGroup(array $channelIds, int $targetId): int
+    {
+        return $this->mergeGroup($channelIds, $targetId, MediaType::Television);
+    }
+
+    /** @param list<int> $mediaIds */
+    private function mergeGroup(array $mediaIds, int $targetId, MediaType $type): int
+    {
+        $items = Media::query()->where('type', $type)
+            ->whereIn('id', $mediaIds)->with(['categories', 'genres', 'languages', 'radioStation', 'tvChannel'])->get();
+        $target = $items->firstWhere('id', $targetId);
+        abort_unless($target && $items->count() === count(array_unique($mediaIds)), 422);
+        abort_unless($items->map(fn (Media $item) => $this->duplicateSignature($item))->unique()->count() === 1, 422);
+
+        foreach ($items->where('id', '!=', $targetId) as $duplicate) {
             $this->mergeInto($target, $duplicate);
         }
 
-        return max(0, $stations->count() - 1);
+        return max(0, $items->count() - 1);
     }
 
     /** @return array{genres_removed:int, flagged:int, merged:int} */

@@ -4,7 +4,7 @@
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="csrf-token" content="{{ csrf_token() }}"><meta name="robots" content="noindex, nofollow, noarchive"><title>{{ $title ?? 'Dashboard' }} — Wavexa</title>
     @fonts @vite(['resources/css/app.css', 'resources/js/app.js']) @livewireStyles
 </head>
-<body class="min-h-screen bg-stone-100 font-sans text-slate-950 antialiased" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body data-dashboard class="min-h-screen bg-stone-100 font-sans text-slate-950 antialiased" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
     <a href="#dashboard-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]">Skip to dashboard content</a>
     <div class="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
         <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-950/45 lg:hidden" @click="sidebarOpen = false"></div>
@@ -29,6 +29,12 @@
         </aside>
         <div class="min-w-0"><header class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-stone-200 bg-white/95 px-4 backdrop-blur sm:px-7"><div class="flex items-center gap-3"><button @click="sidebarOpen = true" class="grid size-11 place-items-center rounded-xl border border-stone-200 lg:hidden" aria-label="Open menu">☰</button><div><p class="text-[9px] font-extrabold uppercase tracking-[.2em] text-orange-600">Wavexa operations</p><h1 class="font-display text-xl font-extrabold">{{ $title ?? 'Dashboard' }}</h1></div></div><span class="hidden rounded-full bg-emerald-100 px-3 py-2 text-xs font-extrabold text-emerald-800 sm:inline-flex">Admin access</span></header><main id="dashboard-content" class="p-4 sm:p-7 lg:p-10">{{ $slot }}</main></div>
     </div>
+    @persist('wavexa-radio-player')
+    <div data-radio-dock class="fixed inset-x-3 bottom-3 z-[60] hidden rounded-[22px] bg-slate-950 p-3 text-white shadow-2xl md:inset-x-auto md:bottom-5 md:right-5 md:w-[420px]">
+        <div class="flex items-center gap-3"><span data-player-art class="grid size-12 shrink-0 place-items-center rounded-2xl bg-orange-500 text-lg font-black">W</span><span class="min-w-0 flex-1"><small class="block text-[10px] font-bold uppercase tracking-wider text-emerald-300">Playing live</small><strong data-player-title class="block truncate text-sm">Wavexa Radio</strong><span data-player-status class="block truncate text-xs text-slate-400">Connecting…</span></span><button data-player-report type="button" class="text-[10px] font-bold text-slate-400 underline">Report</button><button data-player-toggle type="button" class="grid size-11 shrink-0 place-items-center rounded-full bg-white text-slate-950" aria-label="Pause live radio"><svg data-pause-icon viewBox="0 0 24 24" class="size-5" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg><svg data-play-icon viewBox="0 0 24 24" class="ml-0.5 hidden size-5" fill="currentColor"><path d="m8 5 11 7-11 7Z"/></svg></button></div><audio data-radio-audio preload="none"></audio>
+    </div>
+    @endpersist
+    @persist('wavexa-tv-player')<x-tv-player-dock />@endpersist
     @livewireScripts
 </body>
 </html>
