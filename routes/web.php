@@ -5,6 +5,7 @@ use App\Http\Controllers\RadioController;
 use App\Http\Controllers\StreamReportController;
 use App\Http\Controllers\TvController;
 use App\Livewire\Pages\Home;
+use App\Livewire\Pages\Tv\Index as TvIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
@@ -15,7 +16,7 @@ Route::post('/radio/{slug}/play', [RadioController::class, 'play'])
     ->middleware('throttle:30,1')
     ->name('radio.play');
 
-Route::get('/tv', [TvController::class, 'index'])->name('tv.index');
+Route::get('/tv', TvIndex::class)->name('tv.index');
 Route::get('/tv/{slug}', [TvController::class, 'show'])->name('tv.show');
 Route::post('/streams/{stream}/report', [StreamReportController::class, 'store'])
     ->middleware('throttle:5,10')->name('streams.report');

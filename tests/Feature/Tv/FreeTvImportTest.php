@@ -50,7 +50,9 @@ class FreeTvImportTest extends TestCase
             ->assertSee('Wavexa News')
             ->assertSee('Rights review pending')
             ->assertSee('data-play-tv', false)
+            ->assertSee('data-tv-inline-host', false)
             ->assertSee('data-tv-dock', false)
+            ->assertSee('z-[45] hidden', false)
             ->assertSee('x-persist="wavexa-tv-player"', false);
 
         $this->get(route('home'))->assertOk()->assertSee('data-tv-dock', false);

@@ -45,8 +45,9 @@ if (radioDock && radioAudio) {
     const bindRadioButtons = () => document.querySelectorAll('[data-play-station]:not([data-player-bound])').forEach((button) => {
         button.dataset.playerBound = 'true';
         button.addEventListener('click', async () => {
+            document.querySelector('[data-tv-close]')?.click();
             state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button) };
-            streamIndex = 0; showState(); localStorage.setItem('wavexa-player', JSON.stringify(state)); await loadCurrent();
+            streamIndex = 0; showState(); await loadCurrent();
             fetch(`/radio/${encodeURIComponent(state.slug)}/play`, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
         });
     });
@@ -62,7 +63,7 @@ if (radioDock && radioAudio) {
     radioAudio.addEventListener('pause', () => setPlaying(false));
     radioAudio.addEventListener('waiting', () => { status.textContent = 'Buffering live audio…'; });
     radioAudio.addEventListener('error', () => { streamIndex++; loadCurrent(); });
-    try { state = JSON.parse(localStorage.getItem('wavexa-player')); if (state?.streams?.length) { showState(); status.textContent = 'Ready to resume'; setPlaying(false); } } catch { localStorage.removeItem('wavexa-player'); }
+    localStorage.removeItem('wavexa-player');
 }
 
 const tvDock = document.querySelector('[data-tv-dock]');
@@ -76,6 +77,21 @@ if (tvDock && tvPlayer) {
     const expand = tvDock.querySelector('[data-tv-expand]');
     let state = null; let streamIndex = 0; let hls = null; let closed = true;
 
+    const syncTvPlacement = () => {
+        const host = document.querySelector('[data-tv-inline-host]');
+        const matchesChannel = host && state?.slug && host.dataset.channel === state.slug;
+        if (!matchesChannel || tvDock.hasAttribute('data-expanded')) {
+            tvDock.removeAttribute('data-inline');
+            return;
+        }
+
+        const rect = host.getBoundingClientRect();
+        tvDock.setAttribute('data-inline', '');
+        tvDock.style.setProperty('--tv-inline-left', `${rect.left}px`);
+        tvDock.style.setProperty('--tv-inline-top', `${rect.top}px`);
+        tvDock.style.setProperty('--tv-inline-width', `${rect.width}px`);
+    };
+
     const setPlaying = (playing) => {
         playIcon?.classList.toggle('hidden', playing);
         pauseIcon?.classList.toggle('hidden', !playing);
@@ -85,6 +101,8 @@ if (tvDock && tvPlayer) {
     const showDock = () => {
         closed = false; tvDock.classList.remove('hidden');
         title.textContent = state?.title || 'Live television';
+        tvPlayer.setAttribute('aria-label', `${state?.title || 'Live television'} live stream`);
+        requestAnimationFrame(syncTvPlacement);
     };
     const loadCurrent = async (autoplay = true) => {
         const stream = state?.streams?.[streamIndex];
@@ -104,17 +122,21 @@ if (tvDock && tvPlayer) {
         button.dataset.tvBound = 'true';
         button.addEventListener('click', async () => {
             document.querySelector('[data-radio-audio]')?.pause();
-            state = { title: button.dataset.title || 'Live television', streams: parseStreams(button) };
-            streamIndex = 0; showDock(); localStorage.setItem('wavexa-tv-player', JSON.stringify(state)); await loadCurrent();
+            document.querySelector('[data-radio-dock]')?.classList.add('hidden');
+            state = { slug: button.dataset.slug, title: button.dataset.title || 'Live television', streams: parseStreams(button) };
+            streamIndex = 0; showDock(); await loadCurrent();
         });
     });
     bindTvButtons();
-    document.addEventListener('livewire:navigated', bindTvButtons);
+    document.addEventListener('livewire:navigating', () => tvDock.removeAttribute('data-inline'));
+    document.addEventListener('livewire:navigated', () => { bindTvButtons(); requestAnimationFrame(syncTvPlacement); });
+    window.addEventListener('scroll', syncTvPlacement, { passive: true });
+    window.addEventListener('resize', syncTvPlacement, { passive: true });
     toggle?.addEventListener('click', () => tvPlayer.paused ? tvPlayer.play().catch(() => loadCurrent()) : tvPlayer.pause());
     tvDock.querySelector('[data-tv-close]')?.addEventListener('click', async () => {
         closed = true; hls?.destroy(); tvPlayer.pause(); tvPlayer.removeAttribute('src'); tvPlayer.load();
         if (document.pictureInPictureElement === tvPlayer) await document.exitPictureInPicture().catch(() => {});
-        tvDock.classList.add('hidden'); tvDock.removeAttribute('data-expanded'); localStorage.removeItem('wavexa-tv-player'); state = null;
+        tvDock.classList.add('hidden'); tvDock.removeAttribute('data-expanded'); tvDock.removeAttribute('data-inline'); state = null;
     });
     tvDock.querySelector('[data-tv-pip]')?.addEventListener('click', async () => {
         if (!document.pictureInPictureEnabled || tvPlayer.readyState === 0) { message.classList.remove('hidden'); message.textContent = 'Picture-in-picture is not supported by this browser.'; return; }
@@ -122,13 +144,15 @@ if (tvDock && tvPlayer) {
     });
     expand?.addEventListener('click', () => {
         const expanded = tvDock.toggleAttribute('data-expanded');
+        tvDock.removeAttribute('data-inline');
         expand.textContent = expanded ? 'Minimize' : 'Expand'; expand.setAttribute('aria-label', expanded ? 'Minimize player' : 'Expand player');
+        if (!expanded) requestAnimationFrame(syncTvPlacement);
     });
     tvPlayer.addEventListener('playing', () => { message.classList.add('hidden'); setPlaying(true); });
     tvPlayer.addEventListener('pause', () => { if (!closed) setPlaying(false); });
     tvPlayer.addEventListener('waiting', () => { message.classList.remove('hidden'); message.textContent = 'Buffering live television…'; });
     tvPlayer.addEventListener('error', () => { if (!closed && state) { streamIndex++; loadCurrent(); } });
-    try { state = JSON.parse(localStorage.getItem('wavexa-tv-player')); if (state?.streams?.length) { showDock(); message.textContent = 'Ready to resume this channel'; setPlaying(false); } } catch { localStorage.removeItem('wavexa-tv-player'); }
+    localStorage.removeItem('wavexa-tv-player');
 }
 
 const bindPageControls = () => {

@@ -73,6 +73,38 @@ video {
     bottom: 6rem;
 }
 
+[data-tv-dock] {
+    transition: left 220ms ease, top 220ms ease, width 220ms ease, bottom 220ms ease, border-radius 220ms ease, box-shadow 220ms ease;
+}
+
+[data-tv-dock][data-inline] {
+    inset: var(--tv-inline-top) auto auto var(--tv-inline-left) !important;
+    width: var(--tv-inline-width) !important;
+    border-radius: 1.5rem;
+    box-shadow: none;
+    transition: none;
+}
+
+[data-tv-dock][data-inline] [data-tv-meta],
+[data-tv-dock][data-inline] [data-floating-only] {
+    display: none;
+}
+
+[data-tv-dock][data-inline] [data-tv-pip] {
+    font-size: 0;
+}
+
+[data-tv-dock][data-inline] [data-tv-pip]::after {
+    content: 'Pop out';
+    font-size: 0.625rem;
+}
+
+@media (max-width: 767px) {
+    [data-tv-dock]:not([data-inline]) {
+        bottom: 5.75rem;
+    }
+}
+
 @media (min-width: 768px) {
     [data-tv-dock][data-expanded] {
         inset: auto 1.25rem 1.25rem auto;
