@@ -41,6 +41,10 @@ class TvPaginationTest extends TestCase
             ->assertSee('Showing')
             ->call('nextPage')
             ->assertSee('Channel 19')
-            ->assertDontSee('Channel 01');
+            ->assertDontSee('Channel 01')
+            ->set('q', 'Channel 03')
+            ->assertSet('paginators.page', 1)
+            ->assertSee('Channel 03')
+            ->assertDontSee('Channel 19');
     }
 }
