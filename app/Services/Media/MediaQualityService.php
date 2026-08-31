@@ -2,6 +2,7 @@
 
 namespace App\Services\Media;
 
+use App\Enums\MediaType;
 use App\Models\Media;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,7 +21,7 @@ class MediaQualityService
     /** @param list<int> $stationIds */
     public function mergeRadioGroup(array $stationIds, int $targetId): int
     {
-        $stations = Media::query()->where('type', \App\Enums\MediaType::Radio)
+        $stations = Media::query()->where('type', MediaType::Radio)
             ->whereIn('id', $stationIds)->with(['categories', 'genres', 'languages', 'radioStation'])->get();
         $target = $stations->firstWhere('id', $targetId);
         abort_unless($target && $stations->count() === count(array_unique($stationIds)), 422);
@@ -34,11 +35,11 @@ class MediaQualityService
     }
 
     /** @return array{genres_removed:int, flagged:int, merged:int} */
-    public function clean(bool $merge = true): array
+    public function clean(bool $merge = true, ?MediaType $type = null): array
     {
         $result = ['genres_removed' => 0, 'flagged' => 0, 'merged' => 0];
 
-        Media::query()->with(['genres', 'artworks', 'sources'])->chunkById(200, function ($mediaItems) use (&$result): void {
+        Media::query()->when($type, fn ($query) => $query->where('type', $type))->with(['genres', 'artworks', 'sources'])->chunkById(200, function ($mediaItems) use (&$result): void {
             foreach ($mediaItems as $media) {
                 $noisy = $media->genres->filter(fn ($genre) => $this->isNoisyTag($genre->name));
                 if ($noisy->isNotEmpty()) {
@@ -63,7 +64,7 @@ class MediaQualityService
         });
 
         if ($merge) {
-            $result['merged'] = $this->mergeExactDuplicates();
+            $result['merged'] = $this->mergeExactDuplicates($type);
         }
 
         return $result;
@@ -79,10 +80,10 @@ class MediaQualityService
             || str_word_count($value) > 6;
     }
 
-    private function mergeExactDuplicates(): int
+    private function mergeExactDuplicates(?MediaType $type = null): int
     {
         $merged = 0;
-        Media::query()->with(['categories', 'genres', 'languages'])->get()->groupBy(fn (Media $media) => $this->duplicateSignature($media))->filter(fn ($group) => $group->count() > 1)->each(function ($group) use (&$merged): void {
+        Media::query()->when($type, fn ($query) => $query->where('type', $type))->with(['categories', 'genres', 'languages'])->get()->groupBy(fn (Media $media) => $this->duplicateSignature($media))->filter(fn ($group) => $group->count() > 1)->each(function ($group) use (&$merged): void {
             $target = $group->sortBy('id')->first();
             foreach ($group->where('id', '!=', $target->id) as $duplicate) {
                 $this->mergeInto($target, $duplicate);

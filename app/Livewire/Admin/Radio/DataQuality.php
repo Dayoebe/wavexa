@@ -19,17 +19,22 @@ class DataQuality extends Component
 {
     use WithPagination;
 
-    #[Url(except: '')] public string $q = '';
-    #[Url(except: '')] public string $issue = '';
+    #[Url(except: '')]
+    public string $q = '';
+
+    #[Url(except: '')]
+    public string $issue = '';
 
     public function updated(string $property): void
     {
-        if (in_array($property, ['q', 'issue'], true)) $this->resetPage();
+        if (in_array($property, ['q', 'issue'], true)) {
+            $this->resetPage();
+        }
     }
 
     public function runCleanup(MediaQualityService $service): void
     {
-        $result = $service->clean(false);
+        $result = $service->clean(false, MediaType::Radio);
         session()->flash('success', "Quality scan complete: {$result['flagged']} media flagged and {$result['genres_removed']} noisy genre links removed. No records were merged.");
     }
 
