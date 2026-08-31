@@ -77,6 +77,7 @@ class Index extends Component
         $countries = Country::query()->select(['id', 'name', 'iso_alpha_2'])
             ->whereHas('media', fn (Builder $query) => $query->where('type', MediaType::Television)->where('status', MediaStatus::Published))
             ->withCount(['media as tv_count' => fn (Builder $query) => $query->where('type', MediaType::Television)->where('status', MediaStatus::Published)])
+            ->orderByRaw("CASE WHEN iso_alpha_2 = 'NG' THEN 0 ELSE 1 END")
             ->orderBy('name')->get();
         $recentChannels = Media::query()->where('type', MediaType::Television)->where('status', MediaStatus::Published)
             ->with('country')->latest()->limit(6)->get();
