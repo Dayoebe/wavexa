@@ -7,7 +7,7 @@ return [
         ]],
         ['label' => 'Media catalogue', 'items' => [
             ['label' => 'Radio', 'icon' => 'radio', 'active' => 'admin.radio.*', 'children' => [
-                ['label' => 'All stations', 'route' => 'admin.radio.index', 'active' => 'admin.radio.index'], ['label' => 'Add station', 'route' => 'admin.radio.create', 'active' => 'admin.radio.create'], ['label' => 'Duplicates'], ['label' => 'Data quality'],
+                ['label' => 'All stations', 'route' => 'admin.radio.index', 'active' => 'admin.radio.index'], ['label' => 'Add station', 'route' => 'admin.radio.create', 'active' => 'admin.radio.create'], ['label' => 'Duplicates', 'route' => 'admin.radio.duplicates', 'active' => 'admin.radio.duplicates'], ['label' => 'Data quality', 'route' => 'admin.radio.data-quality', 'active' => 'admin.radio.data-quality'],
             ]],
             ['label' => 'Television', 'icon' => 'tv', 'children' => [
                 ['label' => 'All channels'], ['label' => 'Add channel'], ['label' => 'Duplicates'], ['label' => 'Data quality'],
