@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class ImportFreeTvChannels extends Command
 {
-    protected $signature = 'wavexa:import-tv {--country= : ISO 3166-1 alpha-2 country code} {--limit=100 : Maximum playlist entries to inspect}';
+    protected $signature = 'wavexa:import-tv {--country= : ISO 3166-1 alpha-2 country code} {--limit=5000 : Maximum playlist entries to inspect}';
 
     protected $description = 'Import direct television streams from the Free-TV playlist';
 
@@ -22,7 +22,7 @@ class ImportFreeTvChannels extends Command
         }
 
         $this->info('Fetching direct streams from Free-TV...');
-        $result = $importer->import($country ?: null, max(1, min(1000, (int) $this->option('limit'))));
+        $result = $importer->import($country ?: null, max(1, min(5000, (int) $this->option('limit'))));
         $this->table(['Created', 'Updated', 'Skipped', 'Failed'], [array_values($result)]);
 
         return $result['failed'] > 0 && $result['created'] + $result['updated'] === 0 ? self::FAILURE : self::SUCCESS;
