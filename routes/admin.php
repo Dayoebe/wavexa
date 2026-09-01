@@ -1,6 +1,9 @@
 <?php
 
 use App\Livewire\Admin\Dashboard;
+use App\Livewire\Admin\Podcasts\Episodes as PodcastEpisodes;
+use App\Livewire\Admin\Podcasts\Feeds as PodcastFeeds;
+use App\Livewire\Admin\Podcasts\Form as PodcastForm;
 use App\Livewire\Admin\Podcasts\Index as PodcastIndex;
 use App\Livewire\Admin\Radio\DataQuality as RadioDataQuality;
 use App\Livewire\Admin\Radio\Duplicates as RadioDuplicates;
@@ -30,3 +33,6 @@ Route::get('/television/data-quality', TelevisionDataQuality::class)->name('tele
 Route::get('/television/{channel}/edit', TelevisionForm::class)->name('television.edit');
 Route::get('/television/{channel}', TelevisionShow::class)->name('television.show');
 Route::get('/podcasts', PodcastIndex::class)->name('podcasts.index');
+Route::get('/podcasts/create', PodcastForm::class)->name('podcasts.create');
+Route::get('/podcasts/episodes', PodcastEpisodes::class)->name('podcasts.episodes');
+Route::get('/podcasts/feeds', PodcastFeeds::class)->name('podcasts.feeds');
