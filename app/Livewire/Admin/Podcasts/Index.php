@@ -25,6 +25,12 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function delete(int $id): void
+    {
+        Media::query()->where('type', MediaType::Podcast)->findOrFail($id)->delete();
+        session()->flash('success', 'Podcast moved to deleted records.');
+    }
+
     public function render(): View
     {
         $podcasts = Media::query()->where('type', MediaType::Podcast)->with(['podcast', 'country', 'artworks'])
