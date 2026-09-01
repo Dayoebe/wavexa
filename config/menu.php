@@ -12,8 +12,8 @@ return [
             ['label' => 'Television', 'icon' => 'tv', 'active' => 'admin.television.*', 'children' => [
                 ['label' => 'All channels', 'route' => 'admin.television.index', 'active' => 'admin.television.index'], ['label' => 'Add channel', 'route' => 'admin.television.create', 'active' => 'admin.television.create'], ['label' => 'Duplicates', 'route' => 'admin.television.duplicates', 'active' => 'admin.television.duplicates'], ['label' => 'Data quality', 'route' => 'admin.television.data-quality', 'active' => 'admin.television.data-quality'],
             ]],
-            ['label' => 'Podcasts', 'icon' => 'podcast', 'children' => [
-                ['label' => 'All podcasts'], ['label' => 'Add podcast'], ['label' => 'Episodes'], ['label' => 'RSS feeds'],
+            ['label' => 'Podcasts', 'icon' => 'podcast', 'active' => 'admin.podcasts.*', 'children' => [
+                ['label' => 'All podcasts', 'route' => 'admin.podcasts.index', 'active' => 'admin.podcasts.index'], ['label' => 'Add podcast'], ['label' => 'Episodes'], ['label' => 'RSS feeds'],
             ]],
         ]],
         ['label' => 'Discovery', 'items' => [

@@ -47,4 +47,10 @@ return [
         'user_agent' => env('FREE_TV_USER_AGENT', 'Wavexa/1.0'),
     ],
 
+    'apple_podcasts' => [
+        'base_url' => env('APPLE_PODCASTS_BASE_URL', 'https://itunes.apple.com'),
+        'timeout' => (int) env('APPLE_PODCASTS_TIMEOUT', 20),
+        'user_agent' => env('APPLE_PODCASTS_USER_AGENT', 'Wavexa/1.0'),
+    ],
+
 ];
