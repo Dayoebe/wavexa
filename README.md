@@ -44,6 +44,17 @@ Repository: [github.com/Dayoebe/wavexa](https://github.com/Dayoebe/wavexa)
 - Streams become offline after three consecutive failures
 - The scheduler queues the 100 stalest checks every five minutes
 - Authenticated operations dashboard at `/admin/stream-health`
+- Admin queues for broken reports, unverified sources, and repeatedly failing offline streams
+- Immutable health-check history with HTTP, latency, content-type, and failure observations
+- Manual checks dispatch bounded queue jobs; verification decisions remain separate from technical availability
+
+### Playback policy
+
+- Administrators can enable or disable supported stream formats without deleting stream metadata
+- Country allowlists and blocklists are evaluated through the versioned playback-policy API
+- Distribution-rights decisions are audited separately from technical stream verification
+- Rejected rights records and disabled formats prevent the persistent player from starting the affected source
+- Audience-facing policy and playback messages are editable from the dashboard
 
 ### Ingestion operations
 

@@ -26,19 +26,19 @@ return [
             ['label' => 'Search', 'icon' => 'search', 'active' => 'admin.search.*', 'children' => [
                 ['label' => 'Search index', 'route' => 'admin.search.index', 'active' => 'admin.search.index'], ['label' => 'Popular searches', 'route' => 'admin.search.popular', 'active' => 'admin.search.popular'], ['label' => 'No-result searches', 'route' => 'admin.search.no-results', 'active' => 'admin.search.no-results'],
             ]],
-            ['label' => 'Editorial discovery', 'icon' => 'spark', 'children' => [
-                ['label' => 'Trending'], ['label' => 'Recently added'], ['label' => 'Featured media'], ['label' => 'Popular destinations'],
+            ['label' => 'Editorial discovery', 'icon' => 'spark', 'active' => 'admin.editorial.*', 'children' => [
+                ['label' => 'Trending', 'route' => 'admin.editorial.trending', 'active' => 'admin.editorial.trending'], ['label' => 'Recently added', 'route' => 'admin.editorial.recently-added', 'active' => 'admin.editorial.recently-added'], ['label' => 'Featured media', 'route' => 'admin.editorial.featured', 'active' => 'admin.editorial.featured'], ['label' => 'Popular destinations', 'route' => 'admin.editorial.popular-destinations', 'active' => 'admin.editorial.popular-destinations'],
             ]],
         ]],
         ['label' => 'Sources & playback', 'items' => [
-            ['label' => 'Ingestion', 'icon' => 'import', 'children' => [
-                ['label' => 'Source providers'], ['label' => 'Radio imports'], ['label' => 'TV imports'], ['label' => 'Podcast imports'], ['label' => 'Import history'],
+            ['label' => 'Ingestion', 'icon' => 'import', 'active' => 'admin.ingestion.*', 'children' => [
+                ['label' => 'Source providers', 'route' => 'admin.ingestion.sources', 'active' => 'admin.ingestion.sources'], ['label' => 'Radio imports', 'route' => 'admin.ingestion.radio', 'active' => 'admin.ingestion.radio'], ['label' => 'TV imports', 'route' => 'admin.ingestion.television', 'active' => 'admin.ingestion.television'], ['label' => 'Podcast imports', 'route' => 'admin.ingestion.podcasts', 'active' => 'admin.ingestion.podcasts'], ['label' => 'Import history', 'route' => 'admin.ingestion.history', 'active' => 'admin.ingestion.history'],
             ]],
-            ['label' => 'Stream operations', 'icon' => 'signal', 'children' => [
-                ['label' => 'Stream health', 'route' => 'admin.stream-health', 'active' => 'admin.stream-health'], ['label' => 'Broken reports'], ['label' => 'Unverified streams'], ['label' => 'Offline streams'], ['label' => 'Health-check history'],
+            ['label' => 'Stream operations', 'icon' => 'signal', 'active' => 'admin.stream*', 'children' => [
+                ['label' => 'Stream health', 'route' => 'admin.stream-health', 'active' => 'admin.stream-health'], ['label' => 'Broken reports', 'route' => 'admin.streams.reports', 'active' => 'admin.streams.reports'], ['label' => 'Unverified streams', 'route' => 'admin.streams.unverified', 'active' => 'admin.streams.unverified'], ['label' => 'Offline streams', 'route' => 'admin.streams.offline', 'active' => 'admin.streams.offline'], ['label' => 'Health-check history', 'route' => 'admin.streams.history', 'active' => 'admin.streams.history'],
             ]],
-            ['label' => 'Playback policy', 'icon' => 'play', 'children' => [
-                ['label' => 'Stream formats'], ['label' => 'Geoblocking'], ['label' => 'Rights verification'], ['label' => 'Playback messages'],
+            ['label' => 'Playback policy', 'icon' => 'play', 'active' => 'admin.playback.*', 'children' => [
+                ['label' => 'Stream formats', 'route' => 'admin.playback.formats', 'active' => 'admin.playback.formats'], ['label' => 'Geoblocking', 'route' => 'admin.playback.geoblocking', 'active' => 'admin.playback.geoblocking'], ['label' => 'Rights verification', 'route' => 'admin.playback.rights', 'active' => 'admin.playback.rights'], ['label' => 'Playback messages', 'route' => 'admin.playback.messages', 'active' => 'admin.playback.messages'],
             ]],
         ]],
         ['label' => 'Audience', 'items' => [

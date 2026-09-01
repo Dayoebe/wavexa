@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="csrf-token" content="{{ csrf_token() }}"><meta name="robots" content="noindex, nofollow, noarchive"><title>{{ $title ?? 'Dashboard' }} — Wavexa</title>
-    @fonts @vite(['resources/css/app.css', 'resources/js/app.js']) @livewireStyles
+    @fonts <script type="application/json" id="wavexa-playback-messages">{!! json_encode(\Illuminate\Support\Facades\Schema::hasTable('playback_messages') ? \App\Models\PlaybackMessage::where('is_active', true)->pluck('message', 'key') : [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script> @vite(['resources/css/app.css', 'resources/js/app.js']) @livewireStyles
 </head>
 <body data-dashboard class="min-h-screen bg-stone-100 font-sans text-slate-950 antialiased" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
     <a href="#dashboard-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]">Skip to dashboard content</a>

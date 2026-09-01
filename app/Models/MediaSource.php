@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MediaSource extends Model
 {
@@ -26,5 +27,10 @@ class MediaSource extends Model
     public function sourceProvider(): BelongsTo
     {
         return $this->belongsTo(SourceProvider::class);
+    }
+
+    public function rightsReview(): HasOne
+    {
+        return $this->hasOne(RightsReview::class);
     }
 }

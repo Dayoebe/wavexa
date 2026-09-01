@@ -100,6 +100,11 @@ class Media extends Model
         return $this->hasMany(StreamSource::class);
     }
 
+    public function editorialPlacements(): HasMany
+    {
+        return $this->hasMany(EditorialPlacement::class);
+    }
+
     public function primaryStream(): HasOne
     {
         return $this->hasOne(StreamSource::class)->where('is_primary', true);

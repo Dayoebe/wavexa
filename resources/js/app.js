@@ -1,4 +1,7 @@
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+let playbackMessages = {};
+try { playbackMessages = JSON.parse(document.querySelector('#wavexa-playback-messages')?.textContent || '{}'); } catch { playbackMessages = {}; }
+const playbackMessage = (key, fallback) => playbackMessages[key] || fallback;
 
 const parseStreams = (element) => {
     try {
@@ -10,6 +13,13 @@ const parseStreams = (element) => {
 };
 
 const attachStream = async (media, stream, onFatal) => {
+    if (stream.id) {
+        const response = await fetch(`/api/v1/streams/${stream.id}/playback-policy`, { headers: { Accept: 'application/json' } });
+        if (response.ok) {
+            const policy = await response.json();
+            if (!policy.allowed) { const error = new Error(policy.reason || 'policy'); error.policyMessage = policy.message; throw error; }
+        }
+    }
     if (window.location.protocol === 'https:' && stream.url.startsWith('http:')) throw new Error('mixed-content');
     const isHls = stream.format === 'hls' || stream.url.toLowerCase().includes('.m3u8');
     if (!isHls || media.canPlayType('application/vnd.apple.mpegurl')) { media.src = stream.url; return null; }
@@ -63,13 +73,13 @@ if (radioDock && radioAudio) {
     const showState = () => { radioDock.classList.remove('hidden'); title.textContent = state.title; artwork.textContent = state.art || 'W'; };
     const loadCurrent = async (autoplay = true) => {
         const stream = state?.streams?.[streamIndex];
-        if (!stream) { status.textContent = 'Every available source is currently unavailable.'; setPlaying(false); return; }
+        if (!stream) { status.textContent = playbackMessage('offline', 'Every available source is currently unavailable.'); setPlaying(false); return; }
         hls?.destroy(); radioAudio.removeAttribute('src');
-        status.textContent = streamIndex ? 'Trying an alternative source…' : 'Connecting to the provider…';
+        status.textContent = streamIndex ? 'Trying an alternative source…' : playbackMessage('connecting', 'Connecting to the provider…');
         try { hls = await attachStream(radioAudio, stream, () => { streamIndex++; loadCurrent(); }); if (autoplay) await radioAudio.play(); }
         catch (error) {
             if (error.name === 'NotAllowedError') { status.textContent = 'Ready to play. Press play to start listening.'; setPlaying(false); return; }
-            status.textContent = error.message === 'mixed-content' ? 'HTTP stream blocked. Trying another source…' : 'Trying another source…'; streamIndex++; loadCurrent(autoplay);
+            status.textContent = error.policyMessage || (error.message === 'mixed-content' ? playbackMessage('mixed_content', 'HTTP stream blocked. Trying another source…') : 'Trying another source…'); streamIndex++; loadCurrent(autoplay);
         }
     };
     const bindRadioButtons = () => document.querySelectorAll('[data-play-station]:not([data-player-bound])').forEach((button) => {
@@ -96,7 +106,7 @@ if (radioDock && radioAudio) {
     });
     radioAudio.addEventListener('playing', () => { status.textContent = 'Live from the station provider'; setPlaying(true); });
     radioAudio.addEventListener('pause', () => setPlaying(false));
-    radioAudio.addEventListener('waiting', () => { status.textContent = 'Buffering live audio…'; });
+    radioAudio.addEventListener('waiting', () => { status.textContent = playbackMessage('buffering', 'Buffering live audio…'); });
     radioAudio.addEventListener('error', () => { streamIndex++; loadCurrent(); });
     localStorage.removeItem('wavexa-player');
 }
@@ -166,16 +176,16 @@ if (tvDock && tvPlayer) {
     const loadCurrent = async (autoplay = true) => {
         clearPlaybackTimers();
         const stream = state?.streams?.[streamIndex];
-        if (!stream) { message.classList.remove('hidden'); message.textContent = 'Every available source is offline or unavailable in your location.'; setPlaying(false); return; }
+        if (!stream) { message.classList.remove('hidden'); message.textContent = playbackMessage('offline', 'Every available source is offline or unavailable in your location.'); setPlaying(false); return; }
         hls?.destroy(); tvPlayer.removeAttribute('src');
         message.classList.remove('hidden');
-        message.textContent = streamIndex ? 'Trying an alternative source…' : 'Connecting to the channel provider…';
+        message.textContent = streamIndex ? 'Trying an alternative source…' : playbackMessage('connecting', 'Connecting to the channel provider…');
         try {
             hls = await attachStream(tvPlayer, stream, () => { streamIndex++; loadCurrent(); });
             if (autoplay) { watchPlaybackStart(); await tvPlayer.play(); }
         } catch (error) {
             if (error.name === 'NotAllowedError') { clearPlaybackTimers(); message.textContent = 'Ready to play. Press play to start watching.'; setPlaying(false); return; }
-            message.textContent = error.message === 'mixed-content' ? 'This HTTP source is blocked on HTTPS. Trying another…' : 'Trying another source…';
+            message.textContent = error.policyMessage || (error.message === 'mixed-content' ? playbackMessage('mixed_content', 'This HTTP source is blocked on HTTPS. Trying another…') : 'Trying another source…');
             streamIndex++; loadCurrent(autoplay);
         }
     };
@@ -219,7 +229,7 @@ if (tvDock && tvPlayer) {
     tvPlayer.addEventListener('playing', () => { clearPlaybackTimers(); message.classList.add('hidden'); setPlaying(true); });
     tvPlayer.addEventListener('pause', () => { clearPlaybackTimers(); if (!closed) setPlaying(false); });
     tvPlayer.addEventListener('waiting', () => {
-        message.classList.remove('hidden'); message.textContent = 'Stabilizing the live stream…';
+        message.classList.remove('hidden'); message.textContent = playbackMessage('buffering', 'Stabilizing the live stream…');
         clearTimeout(stallTimer);
         stallTimer = setTimeout(() => {
             if (closed || !state || tvPlayer.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return;

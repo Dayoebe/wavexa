@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PlaybackPolicyController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')
@@ -13,4 +14,5 @@ Route::prefix('v1')
                 'version' => 'v1',
             ]);
         })->name('health');
+        Route::get('/streams/{stream}/playback-policy', [PlaybackPolicyController::class, 'show'])->name('streams.playback-policy');
     });

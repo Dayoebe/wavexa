@@ -23,6 +23,7 @@
         <title>{{ $seoTitle }}</title>
         <script type="application/ld+json">{!! $seoSchema !!}</script>
         @fonts
+        <script type="application/json" id="wavexa-playback-messages">{!! json_encode(\Illuminate\Support\Facades\Schema::hasTable('playback_messages') ? \App\Models\PlaybackMessage::where('is_active', true)->pluck('message', 'key') : [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>

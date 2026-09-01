@@ -23,4 +23,9 @@ class SourceProvider extends Model
     {
         return $this->hasMany(StreamSource::class);
     }
+
+    public function ingestionRuns(): HasMany
+    {
+        return $this->hasMany(IngestionRun::class);
+    }
 }
