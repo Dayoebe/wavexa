@@ -3,11 +3,16 @@
 namespace Tests\Feature\Podcasts;
 
 use App\Enums\MediaType;
+use App\Livewire\Admin\Podcasts\Episodes as PodcastEpisodes;
+use App\Livewire\Admin\Podcasts\Feeds as PodcastFeeds;
+use App\Livewire\Admin\Podcasts\Form as PodcastForm;
+use App\Livewire\Admin\Podcasts\Index as PodcastIndex;
 use App\Models\Country;
 use App\Models\Media;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PodcastImportTest extends TestCase
@@ -41,7 +46,18 @@ class PodcastImportTest extends TestCase
         $this->get(route('podcasts.video'))->assertOk()->assertSee('Video Podcasts')->assertSee('Lagos Voices');
         $this->get(route('home'))->assertOk()->assertSee(route('podcasts.index'));
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.podcasts.index'))
-            ->assertOk()->assertSee('Lagos Voices')->assertSee('Open & listen', false);
+            ->assertOk()->assertSee('Lagos Voices')->assertSee('Add podcast');
+        $this->get(route('admin.podcasts.create'))->assertOk()->assertSee('Add a podcast from RSS');
+        $this->get(route('admin.podcasts.episodes'))->assertOk()->assertSee('Welcome to Lagos')->assertSee('Video');
+        $this->get(route('admin.podcasts.feeds'))->assertOk()->assertSee('podcasts.example.test/feed.xml')->assertSee('Synchronize');
+
+        Livewire::test(PodcastForm::class)->set('feedUrl', 'https://podcasts.example.test/feed.xml')
+            ->set('country', 'NG')->set('episodeLimit', 10)->call('save')->assertHasNoErrors()->assertRedirect(route('admin.podcasts.index'));
+        Livewire::test(PodcastFeeds::class)->call('sync', $podcast->id)->assertHasNoErrors();
+        Livewire::test(PodcastEpisodes::class)->call('delete', $episode->id);
+        $this->assertSoftDeleted('media', ['id' => $episode->id]);
+        Livewire::test(PodcastIndex::class)->call('delete', $podcast->id);
+        $this->assertSoftDeleted('media', ['id' => $podcast->id]);
     }
 
     private function feed(): string
