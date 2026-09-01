@@ -14,6 +14,7 @@ use App\Livewire\Admin\Radio\Form as RadioForm;
 use App\Livewire\Admin\Radio\Index as RadioIndex;
 use App\Livewire\Admin\Radio\Show as RadioShow;
 use App\Livewire\Admin\StreamHealth;
+use App\Livewire\Admin\Taxonomy\Assignments;
 use App\Livewire\Admin\Taxonomy\TagCleanup;
 use App\Livewire\Admin\Taxonomy\Terms;
 use App\Livewire\Admin\Television\DataQuality as TelevisionDataQuality;
@@ -32,6 +33,7 @@ Route::get('/taxonomy/categories', Terms::class)->name('taxonomy.categories')->d
 Route::get('/taxonomy/genres', Terms::class)->name('taxonomy.genres')->defaults('kind', 'genres');
 Route::get('/taxonomy/languages', Terms::class)->name('taxonomy.languages')->defaults('kind', 'languages');
 Route::get('/taxonomy/tag-cleanup', TagCleanup::class)->name('taxonomy.tag-cleanup');
+Route::get('/taxonomy/{kind}/{term}', Assignments::class)->name('taxonomy.assignments');
 Route::get('/radio', RadioIndex::class)->name('radio.index');
 Route::get('/radio/create', RadioForm::class)->name('radio.create');
 Route::get('/radio/duplicates', RadioDuplicates::class)->name('radio.duplicates');

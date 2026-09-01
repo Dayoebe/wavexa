@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Livewire\Admin\Taxonomy\TagCleanup;
 use App\Livewire\Admin\Taxonomy\Terms;
+use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Language;
 use App\Models\Media;
@@ -61,6 +62,23 @@ class TaxonomyManagementTest extends TestCase
         $this->assertDatabaseMissing('genres', ['id' => $noisy->id]);
         $this->assertDatabaseHas('genres', ['id' => $valid->id]);
         $this->assertTrue($media->fresh()->genres->contains($valid));
+    }
+
+    public function test_admin_can_view_media_assigned_to_each_taxonomy_term(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+        $station = Media::factory()->create(['name' => 'Lagos Jazz Radio']);
+        $category = Category::query()->create(['name' => 'Music', 'slug' => 'music']);
+        $genre = Genre::query()->create(['name' => 'Jazz', 'slug' => 'jazz']);
+        $language = Language::query()->create(['name' => 'English', 'iso_639_3' => 'eng']);
+        $station->categories()->attach($category);
+        $station->genres()->attach($genre);
+        $station->languages()->attach($language, ['is_primary' => true]);
+
+        foreach (['categories' => $category, 'genres' => $genre, 'languages' => $language] as $kind => $term) {
+            $this->get(route('admin.taxonomy.assignments', [$kind, $term->id]))
+                ->assertOk()->assertSee('Lagos Jazz Radio')->assertSee('Radio')->assertSee('Manage');
+        }
     }
 
     public function test_non_admin_cannot_access_taxonomy(): void
