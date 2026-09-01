@@ -36,7 +36,9 @@ class PodcastImportTest extends TestCase
         $this->assertSame('https://cdn.example.test/episode-1.mp4', $episode->primaryStream->url);
 
         $this->get(route('podcasts.index'))->assertOk()->assertSee('Stories worth hearing.')->assertSee('Lagos Voices');
-        $this->get(route('podcasts.show', $podcast->slug))->assertOk()->assertSee('Welcome to Lagos')->assertSee('cdn.example.test/episode-1.mp4')->assertSee('<video', false);
+        $this->get(route('podcasts.show', $podcast->slug))->assertOk()->assertSee('Welcome to Lagos')->assertSee('cdn.example.test/episode-1.mp4')->assertSee('data-play-podcast', false)->assertSee('data-podcast-dock', false);
+        $this->get(route('podcasts.audio'))->assertOk()->assertSee('Audio Podcasts');
+        $this->get(route('podcasts.video'))->assertOk()->assertSee('Video Podcasts')->assertSee('Lagos Voices');
         $this->get(route('home'))->assertOk()->assertSee(route('podcasts.index'));
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.podcasts.index'))
             ->assertOk()->assertSee('Lagos Voices')->assertSee('Open & listen', false);
