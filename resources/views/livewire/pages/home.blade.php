@@ -7,9 +7,9 @@
             <div class="inline-flex items-center gap-3 rounded-full border border-stone-300 bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 shadow-sm"><span class="grid size-6 place-items-center rounded-full bg-emerald-100"><span class="size-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span></span>Live signals · Worldwide</div>
             <h1 class="mt-7 max-w-3xl text-[3.45rem] font-extrabold leading-[.88] tracking-[-.07em] text-slate-950 sm:text-7xl lg:text-[6.3rem]">The world,<br><span class="text-orange-600">on air.</span></h1>
             <p class="mt-7 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">Move through countries, cultures, and conversations. Wavexa brings live radio and supported television into one beautifully organized signal map.</p>
-            <form action="{{ route('radio.index') }}" method="GET" class="mt-8 flex max-w-xl items-center rounded-[22px] border border-stone-300 bg-white p-2 shadow-xl shadow-slate-900/5">
+            <form action="{{ route('search') }}" method="GET" class="mt-8 flex max-w-xl items-center rounded-[22px] border border-stone-300 bg-white p-2 shadow-xl shadow-slate-900/5">
                 <svg viewBox="0 0 24 24" class="ml-3 size-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-                <label class="sr-only" for="home-search">Search live radio</label><input id="home-search" name="q" class="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm outline-none sm:text-base" placeholder="Search a station, city, or language">
+                <label class="sr-only" for="home-search">Search Wavexa</label><input id="home-search" name="q" class="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm outline-none sm:text-base" placeholder="Search radio, TV, podcasts, or places">
                 <button class="grid size-12 shrink-0 place-items-center rounded-[16px] bg-slate-950 text-white" aria-label="Search"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m9 18 6-6-6-6"/></svg></button>
             </form>
             <div class="mt-8 grid max-w-xl grid-cols-3 divide-x divide-stone-300 border-y border-stone-300 py-4">
@@ -40,6 +40,11 @@
         </div>
     </div>
 </section>
+
+@if($featuredMedia->isNotEmpty())
+<section class="border-b border-stone-200 bg-amber-50 py-14 sm:py-20"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div class="flex items-end justify-between gap-5"><div><p class="text-[10px] font-extrabold uppercase tracking-[.22em] text-fuchsia-700">Selected by Wavexa</p><h2 class="mt-3 text-3xl font-extrabold tracking-[-.04em] sm:text-5xl">Worth discovering now.</h2></div><a wire:navigate href="{{ route('search') }}" class="hidden rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-bold sm:inline-flex">Explore everything →</a></div>
+<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">@foreach($featuredMedia as $item) @php($logo = $item->artworks->firstWhere('is_primary', true)?->url) @php($url = match($item->type->value) {'radio' => route('radio.show', $item->slug), 'tv' => route('tv.show', $item->slug), default => route('podcasts.show', $item->slug)})<a wire:navigate href="{{ $url }}" class="group flex items-center gap-4 rounded-[24px] border border-amber-200 bg-white p-4 transition hover:-translate-y-1 hover:shadow-xl"><span class="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-fuchsia-50 text-2xl font-black text-fuchsia-700">{{ mb_strtoupper(mb_substr($item->name, 0, 1)) }}@if($logo)<img src="{{ $logo }}" alt="" class="absolute inset-0 size-full object-contain p-3" loading="lazy">@endif</span><span class="min-w-0 flex-1"><small class="font-extrabold uppercase tracking-widest text-fuchsia-700">{{ str($item->type->value)->headline() }}</small><strong class="mt-1 block truncate text-lg">{{ $item->name }}</strong><span class="mt-2 block text-xs text-slate-500">{{ $item->country?->name ?? 'Worldwide' }} · Open ↗</span></span></a>@endforeach</div></div></section>
+@endif
 
 <section class="bg-white py-14 sm:py-20"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex items-end justify-between gap-5"><div><p class="text-[10px] font-extrabold uppercase tracking-[.22em] text-orange-600">Tune in instantly</p><h2 class="mt-3 text-3xl font-extrabold tracking-[-.04em] sm:text-5xl">Fresh frequencies.</h2></div><a wire:navigate href="{{ route('radio.index') }}" class="hidden rounded-full border border-stone-300 px-5 py-3 text-sm font-bold sm:inline-flex">Explore all radio →</a></div>
