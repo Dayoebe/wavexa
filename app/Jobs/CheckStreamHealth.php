@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\StreamStatus;
 use App\Models\StreamSource;
+use App\Models\StreamHealthCheck;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -59,5 +60,15 @@ class CheckStreamHealth implements ShouldQueue
             'content_type' => $contentType ?: null,
             'failure_reason' => $healthy ? null : mb_strimwidth((string) $reason, 0, 500),
         ])->save();
+
+        StreamHealthCheck::query()->create([
+            'stream_source_id' => $stream->id,
+            'was_healthy' => $healthy,
+            'response_time_ms' => $elapsed,
+            'http_status' => $status,
+            'content_type' => $contentType ?: null,
+            'failure_reason' => $healthy ? null : mb_strimwidth((string) $reason, 0, 500),
+            'checked_at' => now(),
+        ]);
     }
 }

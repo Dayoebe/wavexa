@@ -3,9 +3,11 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\StreamStatus;
+use App\Jobs\CheckStreamHealth;
 use App\Models\StreamReport;
 use App\Models\StreamSource;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Bus;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -14,6 +16,13 @@ use Livewire\WithPagination;
 class StreamHealth extends Component
 {
     use WithPagination;
+
+    public function queueStaleChecks(): void
+    {
+        $ids = StreamSource::query()->orderByRaw('last_checked_at IS NULL DESC')->orderBy('last_checked_at')->limit(100)->pluck('id');
+        Bus::batch($ids->map(fn (int $id) => new CheckStreamHealth($id)))->name('Admin stream health review')->dispatch();
+        session()->flash('status', $ids->count().' stale stream checks queued.');
+    }
 
     public function render(): View
     {

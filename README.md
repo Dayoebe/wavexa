@@ -27,6 +27,9 @@ Repository: [github.com/Dayoebe/wavexa](https://github.com/Dayoebe/wavexa)
 ### Discovery and quality
 
 - Popular-country rails and country pages combining radio and TV
+- Global type-ahead search across radio, TV, podcasts, countries, genres, and languages, with search-gap analytics
+- Admin editorial workspaces for scheduled featured/trending collections, recently added review, and promoted destination ordering
+- Active editorial selections appear on the homepage while unpinned destinations retain automatic catalogue-based ranking
 - Responsive mobile-app-style interface with collapsible filters
 - Incremental country catalogue from provider metadata
 - Idempotent imports with provider and external-identifier provenance
@@ -41,6 +44,14 @@ Repository: [github.com/Dayoebe/wavexa](https://github.com/Dayoebe/wavexa)
 - Streams become offline after three consecutive failures
 - The scheduler queues the 100 stalest checks every five minutes
 - Authenticated operations dashboard at `/admin/stream-health`
+
+### Ingestion operations
+
+- Admin workspaces for bounded Radio Browser, Free-TV, and podcast-directory imports
+- Imports are dispatched to Laravel queues rather than executed inside web requests
+- Source providers can be enabled or disabled without deleting imported catalogue data
+- Persistent run history records options, operator, status, result counts, timing, and failures
+- Failed or previous runs can be queued again with their original options
 
 ### API
 
