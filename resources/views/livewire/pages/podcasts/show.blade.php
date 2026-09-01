@@ -7,7 +7,22 @@
     <div class="mt-10"><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Latest episodes</p><h2 class="mt-2 text-3xl font-extrabold">Listen now</h2></div>
     <div class="mt-5 space-y-3">
         @forelse($episodes as $episode)
-            <article class="rounded-3xl border border-stone-200 bg-white p-5 sm:p-6"><div class="flex flex-col gap-5 sm:flex-row sm:justify-between"><div class="min-w-0"><p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">{{ $episode->podcastEpisode?->published_at?->format('M j, Y') ?: 'Episode' }}@if($episode->podcastEpisode?->duration_seconds) · {{ gmdate($episode->podcastEpisode->duration_seconds >= 3600 ? 'G:i:s' : 'i:s',$episode->podcastEpisode->duration_seconds) }}@endif</p><h3 class="mt-2 text-xl font-extrabold">{{ $episode->name }}</h3><p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{{ $episode->description }}</p></div></div>@if($episode->primaryStream)<audio controls preload="none" class="mt-5 w-full" src="{{ $episode->primaryStream->url }}">Your browser cannot play this podcast episode.</audio>@else<p class="mt-4 text-sm font-bold text-rose-700">Audio source unavailable.</p>@endif</article>
+            <article class="rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
+                        {{ $episode->podcastEpisode?->published_at?->format('M j, Y') ?: 'Episode' }}
+                        @if($episode->podcastEpisode?->duration_seconds) · {{ gmdate($episode->podcastEpisode->duration_seconds >= 3600 ? 'G:i:s' : 'i:s',$episode->podcastEpisode->duration_seconds) }} @endif
+                        @if(in_array($episode->primaryStream?->format, ['mp4', 'webm'], true)) · Video @endif
+                    </p>
+                    <h3 class="mt-2 text-xl font-extrabold">{{ $episode->name }}</h3>
+                    <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{{ $episode->description }}</p>
+                </div>
+                @if($episode->primaryStream)
+                    <button type="button" data-play-podcast data-url="{{ $episode->primaryStream->url }}" data-format="{{ $episode->primaryStream->format }}" data-title="{{ $episode->name }}" data-show="{{ $podcast->name }}" data-art="{{ $art }}" class="mt-5 inline-flex min-h-12 items-center gap-3 rounded-full bg-slate-950 px-5 text-sm font-extrabold text-white"><span class="grid size-7 place-items-center rounded-full bg-amber-400 text-slate-950">▶</span>{{ in_array($episode->primaryStream->format, ['mp4', 'webm'], true) ? 'Watch episode' : 'Play episode' }}</button>
+                @else
+                    <p class="mt-4 text-sm font-bold text-rose-700">Episode source unavailable.</p>
+                @endif
+            </article>
         @empty <div class="rounded-3xl border border-dashed border-stone-300 p-12 text-center"><h3 class="text-xl font-extrabold">No episodes synchronized yet</h3></div> @endforelse
     </div>
     <div class="mt-8">{{ $episodes->onEachSide(1)->links('livewire.components.pagination',data:['scrollTo'=>'main']) }}</div>
