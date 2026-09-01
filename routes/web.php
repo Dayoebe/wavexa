@@ -7,6 +7,8 @@ use App\Http\Controllers\TvController;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Pages\Home;
+use App\Livewire\Pages\Podcasts\Index as PodcastIndex;
+use App\Livewire\Pages\Podcasts\Show as PodcastShow;
 use App\Livewire\Pages\Tv\Index as TvIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +35,10 @@ Route::post('/radio/{slug}/play', [RadioController::class, 'play'])
 
 Route::get('/tv', TvIndex::class)->name('tv.index');
 Route::get('/tv/{slug}', [TvController::class, 'show'])->name('tv.show');
+Route::get('/podcasts', PodcastIndex::class)->name('podcasts.index');
+Route::get('/podcasts/audio', PodcastIndex::class)->name('podcasts.audio')->defaults('format', 'audio');
+Route::get('/podcasts/video', PodcastIndex::class)->name('podcasts.video')->defaults('format', 'video');
+Route::get('/podcasts/{slug}', PodcastShow::class)->name('podcasts.show');
 Route::post('/streams/{stream}/report', [StreamReportController::class, 'store'])
     ->middleware('throttle:5,10')->name('streams.report');
 Route::get('/countries/{code}', [CountryController::class, 'show'])->name('countries.show');
