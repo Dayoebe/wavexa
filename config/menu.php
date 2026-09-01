@@ -17,11 +17,11 @@ return [
             ]],
         ]],
         ['label' => 'Discovery', 'items' => [
-            ['label' => 'Geography', 'icon' => 'globe', 'children' => [
-                ['label' => 'Countries'], ['label' => 'Regions'], ['label' => 'Cities'],
+            ['label' => 'Geography', 'icon' => 'globe', 'active' => 'admin.geography.*', 'children' => [
+                ['label' => 'Countries', 'route' => 'admin.geography.countries', 'active' => 'admin.geography.countries'], ['label' => 'Regions', 'route' => 'admin.geography.regions', 'active' => 'admin.geography.regions'], ['label' => 'Cities', 'route' => 'admin.geography.cities', 'active' => 'admin.geography.cities'],
             ]],
-            ['label' => 'Taxonomy', 'icon' => 'tag', 'children' => [
-                ['label' => 'Categories'], ['label' => 'Genres'], ['label' => 'Languages'], ['label' => 'Tag cleanup'],
+            ['label' => 'Taxonomy', 'icon' => 'tag', 'active' => 'admin.taxonomy.*', 'children' => [
+                ['label' => 'Categories', 'route' => 'admin.taxonomy.categories', 'active' => 'admin.taxonomy.categories'], ['label' => 'Genres', 'route' => 'admin.taxonomy.genres', 'active' => 'admin.taxonomy.genres'], ['label' => 'Languages', 'route' => 'admin.taxonomy.languages', 'active' => 'admin.taxonomy.languages'], ['label' => 'Tag cleanup', 'route' => 'admin.taxonomy.tag-cleanup', 'active' => 'admin.taxonomy.tag-cleanup'],
             ]],
             ['label' => 'Search', 'icon' => 'search', 'children' => [
                 ['label' => 'Search index'], ['label' => 'Popular searches'], ['label' => 'No-result searches'],

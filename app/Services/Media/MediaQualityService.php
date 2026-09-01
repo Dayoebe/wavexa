@@ -53,7 +53,7 @@ class MediaQualityService
 
         Media::query()->when($type, fn ($query) => $query->where('type', $type))->with(['genres', 'artworks', 'sources'])->chunkById(200, function ($mediaItems) use (&$result): void {
             foreach ($mediaItems as $media) {
-                $noisy = $media->genres->filter(fn ($genre) => $this->isNoisyTag($genre->name));
+                $noisy = $media->genres->filter(fn ($genre) => $this->isNoisyGenre($genre->name));
                 if ($noisy->isNotEmpty()) {
                     $media->genres()->detach($noisy->modelKeys());
                     $result['genres_removed'] += $noisy->count();
@@ -82,7 +82,7 @@ class MediaQualityService
         return $result;
     }
 
-    private function isNoisyTag(string $name): bool
+    public function isNoisyGenre(string $name): bool
     {
         $value = Str::lower(trim($name));
 
