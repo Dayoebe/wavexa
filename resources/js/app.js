@@ -232,6 +232,76 @@ if (tvDock && tvPlayer) {
     localStorage.removeItem('wavexa-tv-player');
 }
 
+const podcastDock = document.querySelector('[data-podcast-dock]');
+const podcastAudio = podcastDock?.querySelector('[data-podcast-audio]');
+const podcastVideo = podcastDock?.querySelector('[data-podcast-video]');
+if (podcastDock && podcastAudio && podcastVideo) {
+    const videoWrap = podcastDock.querySelector('[data-podcast-video-wrap]');
+    const title = podcastDock.querySelector('[data-podcast-title]');
+    const show = podcastDock.querySelector('[data-podcast-show]');
+    const kind = podcastDock.querySelector('[data-podcast-kind]');
+    const artwork = podcastDock.querySelector('[data-podcast-art]');
+    const toggle = podcastDock.querySelector('[data-podcast-toggle]');
+    const playIcon = podcastDock.querySelector('[data-podcast-play]');
+    const pauseIcon = podcastDock.querySelector('[data-podcast-pause]');
+    let currentMedia = podcastAudio;
+    let state = null;
+
+    const setPlaying = (playing) => {
+        playIcon?.classList.toggle('hidden', playing);
+        pauseIcon?.classList.toggle('hidden', !playing);
+        toggle?.setAttribute('aria-label', playing ? 'Pause podcast' : 'Resume podcast');
+    };
+    const stopOtherPlayers = () => {
+        radioAudio?.pause();
+        radioDock?.classList.add('hidden');
+        tvDock?.querySelector('[data-tv-close]')?.click();
+    };
+    const loadPodcast = async () => {
+        const isVideo = ['mp4', 'webm'].includes(state.format);
+        podcastAudio.pause(); podcastVideo.pause();
+        podcastAudio.removeAttribute('src'); podcastVideo.removeAttribute('src');
+        currentMedia = isVideo ? podcastVideo : podcastAudio;
+        videoWrap?.classList.toggle('hidden', !isVideo);
+        currentMedia.src = state.url;
+        title.textContent = state.title;
+        show.textContent = state.show;
+        kind.textContent = isVideo ? 'Video podcast' : 'Audio podcast';
+        artwork.textContent = state.art ? '' : (state.show?.charAt(0) || 'P').toUpperCase();
+        artwork.style.backgroundImage = state.art ? `url("${state.art.replaceAll('"', '%22')}")` : '';
+        artwork.style.backgroundSize = 'cover'; artwork.style.backgroundPosition = 'center';
+        podcastDock.classList.remove('hidden');
+        try { await currentMedia.play(); } catch { setPlaying(false); }
+    };
+    const bindPodcastButtons = () => document.querySelectorAll('[data-play-podcast]:not([data-podcast-bound])').forEach((button) => {
+        button.dataset.podcastBound = 'true';
+        button.addEventListener('click', async () => {
+            stopOtherPlayers();
+            if (state?.url === button.dataset.url) {
+                podcastDock.classList.remove('hidden');
+                if (currentMedia.paused) await currentMedia.play().catch(() => {});
+                return;
+            }
+            state = { url: button.dataset.url, format: button.dataset.format, title: button.dataset.title, show: button.dataset.show, art: button.dataset.art };
+            await loadPodcast();
+        });
+    });
+    bindPodcastButtons();
+    document.addEventListener('livewire:navigated', bindPodcastButtons);
+    toggle?.addEventListener('click', () => currentMedia.paused ? currentMedia.play().catch(() => {}) : currentMedia.pause());
+    podcastDock.querySelector('[data-podcast-close]')?.addEventListener('click', () => {
+        podcastAudio.pause(); podcastVideo.pause();
+        podcastAudio.removeAttribute('src'); podcastVideo.removeAttribute('src');
+        podcastAudio.load(); podcastVideo.load();
+        podcastDock.classList.add('hidden'); state = null; setPlaying(false);
+    });
+    [podcastAudio, podcastVideo].forEach((media) => {
+        media.addEventListener('playing', () => { if (media === currentMedia) setPlaying(true); });
+        media.addEventListener('pause', () => { if (media === currentMedia) setPlaying(false); });
+        media.addEventListener('ended', () => { if (media === currentMedia) setPlaying(false); });
+    });
+}
+
 const bindPageControls = () => {
     document.querySelectorAll('[data-report-stream]:not([data-report-bound])').forEach((button) => {
         button.dataset.reportBound = 'true';
