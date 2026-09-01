@@ -29,4 +29,9 @@ class AdministrativeArea extends Model
     {
         return $this->hasMany(City::class);
     }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class);
+    }
 }
