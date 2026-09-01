@@ -46,4 +46,14 @@ class StreamSource extends Model
     {
         return $this->hasMany(StreamReport::class);
     }
+
+    public function healthChecks(): HasMany
+    {
+        return $this->hasMany(StreamHealthCheck::class);
+    }
+
+    public function geoRules(): HasMany
+    {
+        return $this->hasMany(StreamGeoRule::class);
+    }
 }
