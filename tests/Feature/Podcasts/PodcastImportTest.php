@@ -32,11 +32,11 @@ class PodcastImportTest extends TestCase
         $this->assertSame('Lagos Voices', $podcast->name);
         $this->assertSame('NG', $podcast->country->iso_alpha_2);
         $this->assertSame('Welcome to Lagos', $episode->name);
-        $this->assertSame('mp3', $episode->primaryStream->format);
-        $this->assertSame('https://cdn.example.test/episode-1.mp3', $episode->primaryStream->url);
+        $this->assertSame('mp4', $episode->primaryStream->format);
+        $this->assertSame('https://cdn.example.test/episode-1.mp4', $episode->primaryStream->url);
 
         $this->get(route('podcasts.index'))->assertOk()->assertSee('Stories worth hearing.')->assertSee('Lagos Voices');
-        $this->get(route('podcasts.show', $podcast->slug))->assertOk()->assertSee('Welcome to Lagos')->assertSee('cdn.example.test/episode-1.mp3');
+        $this->get(route('podcasts.show', $podcast->slug))->assertOk()->assertSee('Welcome to Lagos')->assertSee('cdn.example.test/episode-1.mp4')->assertSee('<video', false);
         $this->get(route('home'))->assertOk()->assertSee(route('podcasts.index'));
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.podcasts.index'))
             ->assertOk()->assertSee('Lagos Voices')->assertSee('Open & listen', false);
@@ -48,7 +48,7 @@ class PodcastImportTest extends TestCase
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
 <channel><title>Lagos Voices</title><description>Stories from Nigeria.</description><link>https://example.test</link><language>en</language><itunes:author>Wavexa Studios</itunes:author><itunes:image href="https://example.test/cover.jpg"/>
-<item><title>Welcome to Lagos</title><description>Meet the city.</description><guid>episode-one</guid><pubDate>Mon, 31 Aug 2026 10:00:00 GMT</pubDate><itunes:duration>12:34</itunes:duration><enclosure url="https://cdn.example.test/episode-1.mp3" length="1000" type="audio/mpeg"/></item>
+<item><title>Welcome to Lagos</title><description>Meet the city.</description><guid>episode-one</guid><pubDate>Mon, 31 Aug 2026 10:00:00 GMT</pubDate><itunes:duration>12:34</itunes:duration><enclosure url="https://cdn.example.test/episode-1.mp4" length="1000" type="video/mp4"/></item>
 </channel></rss>
 XML;
     }

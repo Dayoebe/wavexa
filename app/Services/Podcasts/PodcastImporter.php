@@ -146,7 +146,11 @@ class PodcastImporter
         $value = strtolower($contentType.' '.parse_url($url, PHP_URL_PATH));
 
         return match (true) {
-            str_contains($value, 'mp4'), str_contains($value, 'm4a') => 'm4a', str_contains($value, 'ogg') => 'ogg', default => 'mp3'
+            str_contains($value, 'video/mp4'), str_ends_with(parse_url($url, PHP_URL_PATH) ?: '', '.mp4') => 'mp4',
+            str_contains($value, 'video/webm'), str_ends_with(parse_url($url, PHP_URL_PATH) ?: '', '.webm') => 'webm',
+            str_contains($value, 'm4a'), str_contains($value, 'audio/mp4') => 'm4a',
+            str_contains($value, 'ogg') => 'ogg',
+            default => 'mp3',
         };
     }
 }
