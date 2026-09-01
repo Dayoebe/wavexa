@@ -44,6 +44,7 @@ class TelevisionCatalogueTest extends TestCase
         $this->assertSame('LNTV', $channel->tvChannel->call_sign);
         $this->assertSame('hls', $channel->primaryStream->format);
         $this->assertSame([$category->id], $channel->categories->modelKeys());
+        $this->get(route('admin.television.index'))->assertOk()->assertSee('Nigeria (1)');
         $this->get(route('admin.television.show', $channel))->assertOk()->assertSee('Lagos News TV')->assertSee('Source provenance')->assertSee('data-play-tv', false)->assertSee('data-tv-inline-host', false)->assertSee('data-tv-dock', false);
 
         Livewire::test(Form::class, ['channel' => $channel])->set('name', 'Lagos News HD')->set('callSign', 'LNHD')->call('save')->assertHasNoErrors();

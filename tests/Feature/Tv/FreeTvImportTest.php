@@ -45,7 +45,7 @@ class FreeTvImportTest extends TestCase
         $this->artisan('wavexa:import-tv', ['--country' => 'NG'])->assertSuccessful();
         $channel = Media::query()->firstOrFail();
 
-        $this->get(route('tv.index'))->assertOk()->assertSee('Television without borders.')->assertSee('Wavexa News');
+        $this->get(route('tv.index'))->assertOk()->assertSee('Television without borders.')->assertSee('Wavexa News')->assertSee('Nigeria (1)');
         $this->get(route('tv.show', $channel->slug))->assertOk()
             ->assertSee('Wavexa News')
             ->assertSee('Rights review pending')
@@ -57,6 +57,25 @@ class FreeTvImportTest extends TestCase
             ->assertSee('x-persist="wavexa-tv-player"', false);
 
         $this->get(route('home'))->assertOk()->assertSee('data-tv-dock', false);
+    }
+
+    public function test_command_can_inspect_channels_beyond_the_first_thousand_entries(): void
+    {
+        $entries = collect(range(1, 1000))->map(fn (int $index): string => <<<M3U
+#EXTINF:-1 tvg-name="Platform {$index}" tvg-id="Platform{$index}.us" tvg-country="US" group-title="United States",Platform {$index}
+https://www.youtube.com/example/{$index}
+M3U)->push(<<<'M3U'
+#EXTINF:-1 tvg-name="Itage TV" tvg-id="ItageTV.ng" tvg-country="NG" group-title="Nigeria",Itage TV
+https://stream.example.test/itage/playlist.m3u8
+M3U)->implode("\n");
+
+        Http::fake([
+            'raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8' => Http::response("#EXTM3U\n{$entries}"),
+        ]);
+
+        $this->artisan('wavexa:import-tv', ['--limit' => 5000])->assertSuccessful();
+
+        $this->assertDatabaseHas('media', ['name' => 'Itage TV', 'type' => MediaType::Television->value]);
     }
 
     private function playlist(): string

@@ -5,6 +5,7 @@ namespace Tests\Feature\Podcasts;
 use App\Enums\MediaType;
 use App\Models\Country;
 use App\Models\Media;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -37,6 +38,8 @@ class PodcastImportTest extends TestCase
         $this->get(route('podcasts.index'))->assertOk()->assertSee('Stories worth hearing.')->assertSee('Lagos Voices');
         $this->get(route('podcasts.show', $podcast->slug))->assertOk()->assertSee('Welcome to Lagos')->assertSee('cdn.example.test/episode-1.mp3');
         $this->get(route('home'))->assertOk()->assertSee(route('podcasts.index'));
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.podcasts.index'))
+            ->assertOk()->assertSee('Lagos Voices')->assertSee('Open & listen', false);
     }
 
     private function feed(): string
