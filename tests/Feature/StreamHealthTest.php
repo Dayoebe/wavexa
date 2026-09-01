@@ -28,6 +28,7 @@ class StreamHealthTest extends TestCase
         $this->assertSame(200, $stream->http_status);
         $this->assertSame(0, $stream->failure_count);
         $this->assertNotNull($stream->last_successful_at);
+        $this->assertDatabaseHas('stream_health_checks', ['stream_source_id' => $stream->id, 'was_healthy' => true, 'http_status' => 200]);
     }
 
     public function test_three_failures_mark_stream_offline_and_public_can_report_it(): void
@@ -38,6 +39,7 @@ class StreamHealthTest extends TestCase
             (new CheckStreamHealth($stream->id))->handle();
         }
         $this->assertSame(StreamStatus::Offline, $stream->refresh()->status);
+        $this->assertDatabaseCount('stream_health_checks', 3);
         $this->postJson(route('streams.report', $stream), ['reason' => 'buffering'])->assertCreated();
         $this->assertDatabaseHas('stream_reports', ['stream_source_id' => $stream->id, 'reason' => 'buffering']);
     }
