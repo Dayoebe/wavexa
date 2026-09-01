@@ -23,8 +23,8 @@ return [
             ['label' => 'Taxonomy', 'icon' => 'tag', 'active' => 'admin.taxonomy.*', 'children' => [
                 ['label' => 'Categories', 'route' => 'admin.taxonomy.categories', 'active' => 'admin.taxonomy.categories'], ['label' => 'Genres', 'route' => 'admin.taxonomy.genres', 'active' => 'admin.taxonomy.genres'], ['label' => 'Languages', 'route' => 'admin.taxonomy.languages', 'active' => 'admin.taxonomy.languages'], ['label' => 'Tag cleanup', 'route' => 'admin.taxonomy.tag-cleanup', 'active' => 'admin.taxonomy.tag-cleanup'],
             ]],
-            ['label' => 'Search', 'icon' => 'search', 'children' => [
-                ['label' => 'Search index'], ['label' => 'Popular searches'], ['label' => 'No-result searches'],
+            ['label' => 'Search', 'icon' => 'search', 'active' => 'admin.search.*', 'children' => [
+                ['label' => 'Search index', 'route' => 'admin.search.index', 'active' => 'admin.search.index'], ['label' => 'Popular searches', 'route' => 'admin.search.popular', 'active' => 'admin.search.popular'], ['label' => 'No-result searches', 'route' => 'admin.search.no-results', 'active' => 'admin.search.no-results'],
             ]],
             ['label' => 'Editorial discovery', 'icon' => 'spark', 'children' => [
                 ['label' => 'Trending'], ['label' => 'Recently added'], ['label' => 'Featured media'], ['label' => 'Popular destinations'],

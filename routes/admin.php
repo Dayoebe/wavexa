@@ -13,6 +13,7 @@ use App\Livewire\Admin\Radio\Duplicates as RadioDuplicates;
 use App\Livewire\Admin\Radio\Form as RadioForm;
 use App\Livewire\Admin\Radio\Index as RadioIndex;
 use App\Livewire\Admin\Radio\Show as RadioShow;
+use App\Livewire\Admin\Search\Insights as SearchInsights;
 use App\Livewire\Admin\StreamHealth;
 use App\Livewire\Admin\Taxonomy\Assignments;
 use App\Livewire\Admin\Taxonomy\TagCleanup;
@@ -34,6 +35,9 @@ Route::get('/taxonomy/genres', Terms::class)->name('taxonomy.genres')->defaults(
 Route::get('/taxonomy/languages', Terms::class)->name('taxonomy.languages')->defaults('kind', 'languages');
 Route::get('/taxonomy/tag-cleanup', TagCleanup::class)->name('taxonomy.tag-cleanup');
 Route::get('/taxonomy/{kind}/{term}', Assignments::class)->name('taxonomy.assignments');
+Route::get('/search/index', SearchInsights::class)->name('search.index')->defaults('kind', 'index');
+Route::get('/search/popular', SearchInsights::class)->name('search.popular')->defaults('kind', 'popular');
+Route::get('/search/no-results', SearchInsights::class)->name('search.no-results')->defaults('kind', 'no-results');
 Route::get('/radio', RadioIndex::class)->name('radio.index');
 Route::get('/radio/create', RadioForm::class)->name('radio.create');
 Route::get('/radio/duplicates', RadioDuplicates::class)->name('radio.duplicates');

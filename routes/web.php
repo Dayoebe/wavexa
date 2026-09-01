@@ -9,11 +9,13 @@ use App\Livewire\Auth\Register;
 use App\Livewire\Pages\Home;
 use App\Livewire\Pages\Podcasts\Index as PodcastIndex;
 use App\Livewire\Pages\Podcasts\Show as PodcastShow;
+use App\Livewire\Pages\Search;
 use App\Livewire\Pages\Tv\Index as TvIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
+Route::get('/search', Search::class)->name('search');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', Login::class)->name('login');
