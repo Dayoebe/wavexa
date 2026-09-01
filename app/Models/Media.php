@@ -65,6 +65,11 @@ class Media extends Model
         return $this->hasOne(PodcastEpisode::class);
     }
 
+    public function podcastEpisodes(): HasMany
+    {
+        return $this->hasMany(PodcastEpisode::class, 'podcast_id');
+    }
+
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
