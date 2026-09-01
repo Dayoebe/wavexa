@@ -35,6 +35,7 @@
     </div>
     @endpersist
     @persist('wavexa-tv-player')<x-tv-player-dock />@endpersist
+    @persist('wavexa-podcast-player')<x-podcast-player-dock />@endpersist
     @livewireScripts
 </body>
 </html>
