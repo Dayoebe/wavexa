@@ -150,9 +150,20 @@ php artisan wavexa:import-radio --language=English --tag=jazz --limit=50
 Import television:
 
 ```bash
-php artisan wavexa:import-tv --limit=1000
+php artisan wavexa:import-tv
 php artisan wavexa:import-tv --country=NG --limit=100
 ```
+
+The global television import inspects up to 5,000 playlist entries by default so the complete current Free-TV catalogue is considered. Country-specific imports can use a smaller limit.
+
+Discover podcasts through Apple Podcasts and synchronize playable episodes from each publisher's public RSS feed:
+
+```bash
+php artisan wavexa:import-podcasts --term=Nigeria --country=NG --limit=25 --episodes=20
+php artisan wavexa:import-podcasts --term=Technology --country=US --limit=25 --episodes=20
+```
+
+Wavexa stores podcast and episode metadata but does not copy or proxy publisher audio. Playback uses the episode enclosure URL supplied by the RSS feed.
 
 Provider settings are configurable in `.env`:
 
@@ -163,6 +174,9 @@ RADIO_BROWSER_USER_AGENT="Wavexa/1.0"
 
 FREE_TV_PLAYLIST_URL=https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8
 FREE_TV_TIMEOUT=30
+APPLE_PODCASTS_BASE_URL=https://itunes.apple.com
+APPLE_PODCASTS_TIMEOUT=20
+APPLE_PODCASTS_USER_AGENT="Wavexa/1.0"
 FREE_TV_USER_AGENT="Wavexa/1.0"
 ```
 
