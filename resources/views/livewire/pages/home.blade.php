@@ -20,13 +20,25 @@
         </div>
 
         <div class="relative mx-auto w-full max-w-xl lg:max-w-none">
+            @php
+                $globePlaces = $countries->filter(fn ($country) => $country->latitude !== null && $country->longitude !== null)->map(fn ($country) => [
+                    'name' => $country->name,
+                    'code' => $country->iso_alpha_2,
+                    'latitude' => $country->latitude,
+                    'longitude' => $country->longitude,
+                    'sources' => $country->radio_count + $country->tv_count,
+                    'url' => route('countries.show', $country->iso_alpha_2),
+                ])->values();
+            @endphp
             <div class="rounded-[34px] border border-stone-300 bg-white p-3 shadow-2xl shadow-slate-900/10 sm:p-5">
                 <div class="flex items-center justify-between px-2 py-2"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">3D signal atlas</p><p class="mt-1 font-extrabold">Explore the live world</p></div><span class="rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-wider text-emerald-800">Satellite</span></div>
                 <div class="relative mt-3 min-h-[360px] overflow-hidden rounded-[26px] bg-[#071522] sm:min-h-[440px]">
                     <div wire:ignore data-signal-globe @if(config('services.maptiler.api_key')) data-globe-style="https://api.maptiler.com/maps/satellite/style.json?key={{ rawurlencode(config('services.maptiler.api_key')) }}" @endif class="absolute inset-0" role="region" aria-label="Interactive three-dimensional satellite map"></div>
+                    <script type="application/json" data-globe-places>{!! json_encode($globePlaces, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
                     <div data-globe-fallback class="absolute inset-0 hidden place-items-center bg-slate-950 p-8 text-center text-sm leading-6 text-slate-300">Your browser cannot display the interactive globe. Use the country links further down the page to explore Wavexa.</div>
                     <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-slate-950/80 px-5 py-4 text-white backdrop-blur-sm">
                         <p data-globe-status class="text-xs font-semibold text-slate-200" aria-live="polite">Loading the interactive globe…</p>
+                        <p class="mt-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">Location data from <a class="pointer-events-auto underline" href="https://www.whosonfirst.org/docs/licenses/" target="_blank" rel="noreferrer">Who's On First · License</a></p>
                     </div>
                 </div>
             </div>
