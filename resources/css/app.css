@@ -60,6 +60,27 @@ video {
     color: var(--color-slate-950);
 }
 
+[data-signal-globe] .maplibregl-canvas {
+    outline: none;
+}
+
+[data-signal-globe] .maplibregl-ctrl-group {
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    border-radius: 0.875rem;
+    background: rgb(15 23 42 / 0.82);
+    box-shadow: 0 8px 24px rgb(2 6 23 / 0.2);
+    backdrop-filter: blur(12px);
+}
+
+[data-signal-globe] .maplibregl-ctrl-group button + button {
+    border-top-color: rgb(255 255 255 / 0.14);
+}
+
+[data-signal-globe] .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+    filter: invert(1);
+}
+
 .wavexa-rail {
     scrollbar-width: none;
 }

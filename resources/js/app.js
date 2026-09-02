@@ -1,3 +1,5 @@
+import 'maplibre-gl/dist/maplibre-gl.css';
+
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 let playbackMessages = {};
 try { playbackMessages = JSON.parse(document.querySelector('#wavexa-playback-messages')?.textContent || '{}'); } catch { playbackMessages = {}; }
@@ -108,8 +110,61 @@ if (radioDock && radioAudio) {
     radioAudio.addEventListener('pause', () => setPlaying(false));
     radioAudio.addEventListener('waiting', () => { status.textContent = playbackMessage('buffering', 'Buffering live audio…'); });
     radioAudio.addEventListener('error', () => { streamIndex++; loadCurrent(); });
-    localStorage.removeItem('wavexa-player');
+localStorage.removeItem('wavexa-player');
 }
+
+const initializeSignalGlobes = () => {
+    document.querySelectorAll('[data-signal-globe]:not([data-globe-ready])').forEach(async (container) => {
+        container.dataset.globeReady = 'true';
+
+        const status = container.parentElement?.querySelector('[data-globe-status]');
+        const fallback = container.parentElement?.querySelector('[data-globe-fallback]');
+
+        try {
+            const maplibregl = await import('maplibre-gl');
+            if (!container.isConnected || !container.hasAttribute('data-globe-ready')) return;
+
+            const map = new maplibregl.Map({
+                container,
+                style: container.dataset.globeStyle || 'https://demotiles.maplibre.org/globe.json',
+                center: [8, 12],
+                zoom: 1.25,
+                minZoom: 0.8,
+                maxZoom: 7,
+                attributionControl: false,
+                cooperativeGestures: true,
+            });
+
+            container._wavexaMap = map;
+            map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'top-right');
+            map.addControl(new maplibregl.GlobeControl(), 'top-right');
+            map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+
+            map.on('style.load', () => {
+                map.setProjection({ type: 'globe' });
+                if (status) status.textContent = 'Satellite imagery · drag to explore · scroll or pinch to zoom';
+            });
+            map.on('error', () => {
+                if (status) status.textContent = 'The globe could not load. Country links remain available below.';
+            });
+        } catch {
+            container.classList.add('hidden');
+            fallback?.classList.remove('hidden');
+            fallback?.classList.add('flex');
+            if (status) status.textContent = 'Interactive globe unavailable';
+        }
+    });
+};
+
+initializeSignalGlobes();
+document.addEventListener('livewire:navigated', initializeSignalGlobes);
+document.addEventListener('livewire:navigating', () => {
+    document.querySelectorAll('[data-signal-globe][data-globe-ready]').forEach((container) => {
+        container._wavexaMap?.remove();
+        delete container._wavexaMap;
+        delete container.dataset.globeReady;
+    });
+});
 
 const tvDock = document.querySelector('[data-tv-dock]');
 const tvPlayer = tvDock?.querySelector('[data-tv-player]');
