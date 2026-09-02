@@ -53,4 +53,8 @@ return [
         'user_agent' => env('APPLE_PODCASTS_USER_AGENT', 'Wavexa/1.0'),
     ],
 
+    'maptiler' => [
+        'api_key' => env('MAPTILER_API_KEY'),
+    ],
+
 ];
