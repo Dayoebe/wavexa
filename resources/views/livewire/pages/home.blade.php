@@ -19,20 +19,14 @@
             </div>
         </div>
 
-        <div class="relative mx-auto w-full max-w-xl lg:max-w-none" x-data="{ active: 0 }">
+        <div class="relative mx-auto w-full max-w-xl lg:max-w-none">
             <div class="rounded-[34px] border border-stone-300 bg-white p-3 shadow-2xl shadow-slate-900/10 sm:p-5">
-                <div class="flex items-center justify-between px-2 py-2"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Signal atlas</p><p class="mt-1 font-extrabold">Explore what is live now</p></div><span class="grid size-11 place-items-center rounded-2xl bg-orange-100 text-xl">◎</span></div>
-                <div class="relative mt-3 min-h-[330px] overflow-hidden rounded-[26px] bg-sky-100 p-5 sm:min-h-[400px] sm:p-7">
-                    <div class="absolute -right-12 -top-8 size-48 rounded-full bg-amber-300"></div><div class="absolute -bottom-14 -left-10 size-56 rounded-full bg-emerald-300"></div><div class="absolute bottom-20 right-10 size-28 rounded-full bg-lime-300"></div>
-                    <div class="relative grid gap-3">
-                        @forelse($countries->take(4) as $country)
-                            <a wire:navigate href="{{ route('countries.show', $country->iso_alpha_2) }}" @mouseenter="active = {{ $loop->index }}" class="group flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 p-3 shadow-sm backdrop-blur transition hover:translate-x-1">
-                                <span class="grid size-11 place-items-center rounded-xl text-xs font-extrabold {{ ['bg-orange-100 text-orange-700','bg-cyan-100 text-cyan-800','bg-lime-100 text-lime-800','bg-violet-100 text-violet-800'][$loop->index] }}">{{ $country->iso_alpha_2 }}</span>
-                                <span class="min-w-0 flex-1"><strong class="block truncate text-sm">{{ $country->name }}</strong><small class="text-slate-500">{{ number_format($country->radio_count + $country->tv_count) }} live sources</small></span><span class="grid size-8 place-items-center rounded-full bg-slate-950 text-white transition group-hover:rotate-[-20deg]">↗</span>
-                            </a>
-                        @empty
-                            <p class="relative rounded-2xl bg-white p-5 text-sm text-slate-600">Import media to populate the live signal atlas.</p>
-                        @endforelse
+                <div class="flex items-center justify-between px-2 py-2"><div><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">3D signal atlas</p><p class="mt-1 font-extrabold">Explore the live world</p></div><span class="rounded-full bg-emerald-100 px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-wider text-emerald-800">Satellite</span></div>
+                <div class="relative mt-3 min-h-[360px] overflow-hidden rounded-[26px] bg-[#071522] sm:min-h-[440px]">
+                    <div wire:ignore data-signal-globe @if(config('services.maptiler.api_key')) data-globe-style="https://api.maptiler.com/maps/satellite/style.json?key={{ rawurlencode(config('services.maptiler.api_key')) }}" @endif class="absolute inset-0" role="region" aria-label="Interactive three-dimensional satellite map"></div>
+                    <div data-globe-fallback class="absolute inset-0 hidden place-items-center bg-slate-950 p-8 text-center text-sm leading-6 text-slate-300">Your browser cannot display the interactive globe. Use the country links further down the page to explore Wavexa.</div>
+                    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-slate-950/80 px-5 py-4 text-white backdrop-blur-sm">
+                        <p data-globe-status class="text-xs font-semibold text-slate-200" aria-live="polite">Loading the interactive globe…</p>
                     </div>
                 </div>
             </div>
