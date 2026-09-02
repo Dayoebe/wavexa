@@ -57,4 +57,11 @@ return [
         'api_key' => env('MAPTILER_API_KEY'),
     ],
 
+    'whos_on_first' => [
+        'spelunker_url' => env('WOF_SPELUNKER_URL', 'https://spelunker.whosonfirst.org'),
+        'data_url' => env('WOF_DATA_URL', 'https://data.whosonfirst.org'),
+        'timeout' => (int) env('WOF_TIMEOUT', 60),
+        'user_agent' => env('WOF_USER_AGENT', 'Wavexa/1.0'),
+    ],
+
 ];
