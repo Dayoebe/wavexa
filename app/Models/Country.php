@@ -15,6 +15,19 @@ class Country extends Model
 
     protected $fillable = ['name', 'iso_alpha_2', 'iso_alpha_3', 'iso_numeric'];
 
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'min_latitude' => 'float',
+            'min_longitude' => 'float',
+            'max_latitude' => 'float',
+            'max_longitude' => 'float',
+            'wof_synced_at' => 'datetime',
+        ];
+    }
+
     public function administrativeAreas(): HasMany
     {
         return $this->hasMany(AdministrativeArea::class);
