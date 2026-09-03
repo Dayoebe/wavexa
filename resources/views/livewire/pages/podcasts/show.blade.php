@@ -3,11 +3,12 @@
     <section class="grid gap-7 rounded-[32px] border border-stone-200 bg-amber-50 p-6 sm:grid-cols-[220px_1fr] sm:p-10">
         <div class="relative aspect-square overflow-hidden rounded-[28px] bg-amber-200 text-6xl font-extrabold text-amber-800 grid place-items-center">{{ mb_strtoupper(mb_substr($podcast->name,0,1)) }}@if($art)<img src="{{ $art }}" alt="{{ $podcast->name }} cover" class="absolute inset-0 size-full object-cover">@endif</div>
         <div class="self-center"><a wire:navigate href="{{ route('podcasts.index') }}" class="text-xs font-extrabold text-amber-800">← All podcasts</a><h1 class="mt-4 text-4xl font-extrabold leading-none tracking-[-.04em] sm:text-6xl">{{ $podcast->name }}</h1><p class="mt-3 font-bold text-slate-600">{{ $podcast->podcast?->author }}</p><p class="mt-5 line-clamp-4 max-w-3xl leading-7 text-slate-600">{{ $podcast->description }}</p>@if($podcast->website_url)<a href="{{ $podcast->website_url }}" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex rounded-full border border-stone-300 bg-white px-4 py-2 text-xs font-extrabold">Publisher website ↗</a>@endif</div>
+        <div class="sm:col-start-2"><x-favorite-button :media="$podcast" /></div>
     </section>
     <div class="mt-10"><p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-slate-400">Latest episodes</p><h2 class="mt-2 text-3xl font-extrabold">Listen now</h2></div>
     <div class="mt-5 space-y-3">
         @forelse($episodes as $episode)
-            <article class="rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
+            <article data-media="{{ $episode->id }}" class="rounded-3xl border border-stone-200 bg-white p-5 sm:p-6">
                 <div class="min-w-0">
                     <p class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
                         {{ $episode->podcastEpisode?->published_at?->format('M j, Y') ?: 'Episode' }}
@@ -22,6 +23,7 @@
                 @else
                     <p class="mt-4 text-sm font-bold text-rose-700">Episode source unavailable.</p>
                 @endif
+                <x-favorite-button :media="$episode" class="mt-3" />
             </article>
         @empty <div class="rounded-3xl border border-dashed border-stone-300 p-12 text-center"><h3 class="text-xl font-extrabold">No episodes synchronized yet</h3></div> @endforelse
     </div>

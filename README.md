@@ -70,6 +70,14 @@ Repository: [github.com/Dayoebe/wavexa](https://github.com/Dayoebe/wavexa)
 - Health endpoint: `GET /api/v1/health`
 - Laravel Sanctum installed for future first-party API and mobile authentication
 
+### Member libraries and administration
+
+- Private favorites for stations, channels, podcasts, and episodes
+- Private recently played history with per-item play counts
+- A signed-in library at `/library`
+- An admin-only user directory for appointing and removing administrators
+- Safeguards prevent self-demotion and preserve at least one administrator
+
 ## Technology
 
 - PHP 8.3+, Laravel 13, Livewire 4, and Laravel Sanctum
@@ -224,7 +232,7 @@ The scheduled command requires a running queue worker. Inspect the schedule with
 php artisan schedule:list
 ```
 
-The `/admin/stream-health` dashboard is protected by `auth`. Public authentication and admin roles are not implemented yet, so complete authorization before exposing admin access.
+The dashboard is protected by authentication and administrator authorization. Existing administrators can manage access from `/admin/users`.
 
 ## Catalogue cleanup
 
