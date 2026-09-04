@@ -43,7 +43,7 @@ return [
         ]],
         ['label' => 'Audience', 'items' => [
             ['label' => 'Users', 'icon' => 'users', 'children' => [
-                ['label' => 'All users'], ['label' => 'Administrators'], ['label' => 'Roles & permissions'], ['label' => 'Account activity'],
+                ['label' => 'All users', 'route' => 'admin.users.index', 'active' => 'admin.users.index'],
             ]],
             ['label' => 'Engagement', 'icon' => 'heart', 'children' => [
                 ['label' => 'Favorites'], ['label' => 'Listening history'], ['label' => 'Watch history'], ['label' => 'Shared media'],
