@@ -1,6 +1,12 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+const authenticated = document.querySelector('meta[name="wavexa-authenticated"]') !== null;
+const recordPlayback = (mediaId, streamId) => {
+    if (!authenticated || (!mediaId && !streamId)) return;
+    const path = streamId ? `/library/history/stream/${streamId}` : `/library/history/${mediaId}`;
+    fetch(path, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
+};
 let playbackMessages = {};
 try { playbackMessages = JSON.parse(document.querySelector('#wavexa-playback-messages')?.textContent || '{}'); } catch { playbackMessages = {}; }
 const playbackMessage = (key, fallback) => playbackMessages[key] || fallback;
@@ -89,7 +95,7 @@ if (radioDock && radioAudio) {
         button.addEventListener('click', async () => {
             if (state?.slug === button.dataset.slug && !radioAudio.paused) { showState(); return; }
             document.querySelector('[data-tv-close]')?.click();
-            state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button) };
+            state = { title: button.dataset.title || 'Live radio', slug: button.dataset.slug, art: button.dataset.art, streams: parseStreams(button), recorded: false };
             streamIndex = 0; showState(); await loadCurrent();
             fetch(`/radio/${encodeURIComponent(state.slug)}/play`, { method: 'POST', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken } }).catch(() => {});
         });
@@ -106,7 +112,7 @@ if (radioDock && radioAudio) {
         const response = await fetch(`/streams/${stream.id}/report`, { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken }, body: JSON.stringify({ reason: 'not_playing' }) });
         if (response.ok) report.textContent = 'Reported';
     });
-    radioAudio.addEventListener('playing', () => { status.textContent = 'Live from the station provider'; setPlaying(true); });
+    radioAudio.addEventListener('playing', () => { status.textContent = 'Live from the station provider'; setPlaying(true); if (!state?.recorded) { recordPlayback(null, state?.streams?.[streamIndex]?.id); state.recorded = true; } });
     radioAudio.addEventListener('pause', () => setPlaying(false));
     radioAudio.addEventListener('waiting', () => { status.textContent = playbackMessage('buffering', 'Buffering live audio…'); });
     radioAudio.addEventListener('error', () => { streamIndex++; loadCurrent(); });
@@ -250,7 +256,7 @@ if (tvDock && tvPlayer) {
             if (state?.slug === button.dataset.slug && !tvPlayer.paused) { showDock(); return; }
             document.querySelector('[data-radio-audio]')?.pause();
             document.querySelector('[data-radio-dock]')?.classList.add('hidden');
-            state = { slug: button.dataset.slug, title: button.dataset.title || 'Live television', streams: parseStreams(button) };
+            state = { slug: button.dataset.slug, title: button.dataset.title || 'Live television', streams: parseStreams(button), recorded: false };
             streamIndex = 0; showDock(); await loadCurrent();
         });
         if (button.hasAttribute('data-autoplay') && !button.hasAttribute('data-autoplay-started')) {
@@ -281,7 +287,7 @@ if (tvDock && tvPlayer) {
         expand.textContent = expanded ? 'Minimize' : 'Expand'; expand.setAttribute('aria-label', expanded ? 'Minimize player' : 'Expand player');
         if (!expanded) requestAnimationFrame(syncTvPlacement);
     });
-    tvPlayer.addEventListener('playing', () => { clearPlaybackTimers(); message.classList.add('hidden'); setPlaying(true); });
+    tvPlayer.addEventListener('playing', () => { clearPlaybackTimers(); message.classList.add('hidden'); setPlaying(true); if (!state?.recorded) { recordPlayback(null, state?.streams?.[streamIndex]?.id); state.recorded = true; } });
     tvPlayer.addEventListener('pause', () => { clearPlaybackTimers(); if (!closed) setPlaying(false); });
     tvPlayer.addEventListener('waiting', () => {
         message.classList.remove('hidden'); message.textContent = playbackMessage('buffering', 'Stabilizing the live stream…');
@@ -347,7 +353,7 @@ if (podcastDock && podcastAudio && podcastVideo) {
                 if (currentMedia.paused) await currentMedia.play().catch(() => {});
                 return;
             }
-            state = { url: button.dataset.url, format: button.dataset.format, title: button.dataset.title, show: button.dataset.show, art: button.dataset.art };
+            state = { url: button.dataset.url, format: button.dataset.format, title: button.dataset.title, show: button.dataset.show, art: button.dataset.art, mediaId: button.closest('[data-media]')?.dataset.media, recorded: false };
             await loadPodcast();
         });
     });
@@ -361,7 +367,7 @@ if (podcastDock && podcastAudio && podcastVideo) {
         podcastDock.classList.add('hidden'); state = null; setPlaying(false);
     });
     [podcastAudio, podcastVideo].forEach((media) => {
-        media.addEventListener('playing', () => { if (media === currentMedia) setPlaying(true); });
+        media.addEventListener('playing', () => { if (media === currentMedia) { setPlaying(true); if (!state?.recorded) { recordPlayback(state?.mediaId); state.recorded = true; } } });
         media.addEventListener('pause', () => { if (media === currentMedia) setPlaying(false); });
         media.addEventListener('ended', () => { if (media === currentMedia) setPlaying(false); });
     });
