@@ -109,4 +109,9 @@ class Media extends Model
     {
         return $this->hasOne(StreamSource::class)->where('is_primary', true);
     }
+
+    public function favoritedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_favorites')->withTimestamps();
+    }
 }
