@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Models\Media;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -18,6 +19,14 @@ class Login extends Component
     public string $password = '';
 
     public bool $remember = false;
+
+    public ?int $save = null;
+
+    public function mount(): void
+    {
+        $save = request()->integer('save');
+        $this->save = $save > 0 && Media::query()->whereKey($save)->exists() ? $save : null;
+    }
 
     public function authenticate(): void
     {
@@ -42,9 +51,13 @@ class Login extends Component
         RateLimiter::clear($key);
         session()->regenerate();
 
+        if ($this->save) {
+            Auth::user()->favoriteMedia()->syncWithoutDetaching([$this->save]);
+        }
+
         $destination = session()->pull('url.intended');
         if (! $destination) {
-            $destination = Auth::user()->is_admin ? route('admin.dashboard') : route('home');
+            $destination = $this->save ? route('library') : (Auth::user()->is_admin ? route('admin.dashboard') : route('home'));
         }
 
         $this->redirect($destination, navigate: true);

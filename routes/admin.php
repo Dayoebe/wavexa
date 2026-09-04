@@ -36,9 +36,11 @@ use App\Livewire\Admin\Television\Duplicates as TelevisionDuplicates;
 use App\Livewire\Admin\Television\Form as TelevisionForm;
 use App\Livewire\Admin\Television\Index as TelevisionIndex;
 use App\Livewire\Admin\Television\Show as TelevisionShow;
+use App\Livewire\Admin\Users\Index as UserIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Dashboard::class)->name('dashboard');
+Route::get('/users', UserIndex::class)->name('users.index');
 Route::get('/stream-health', StreamHealth::class)->name('stream-health');
 Route::get('/streams/reports', BrokenReports::class)->name('streams.reports');
 Route::get('/streams/unverified', StreamQueue::class)->name('streams.unverified')->defaults('kind', 'unverified');
