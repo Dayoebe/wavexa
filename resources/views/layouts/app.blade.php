@@ -12,6 +12,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @auth<meta name="wavexa-authenticated" content="1">@endauth
         <meta name="theme-color" content="#fafaf9">
         <meta name="description" content="{{ $seoDescription }}">
         <meta name="robots" content="{{ $seoRobots }}">
@@ -48,6 +49,7 @@
                         <a wire:navigate href="{{ route('login') }}" class="grid size-11 place-items-center rounded-full border border-stone-300 bg-white text-slate-700 sm:hidden" aria-label="Sign in"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></a>
                         <a wire:navigate href="{{ route('login') }}" class="hidden rounded-xl px-3 py-2 text-sm font-bold text-slate-600 sm:inline-flex">Sign in</a><a wire:navigate href="{{ route('register') }}" class="hidden rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-extrabold text-white sm:inline-flex">Create account</a>
                     @else
+                        <a wire:navigate href="{{ route('library') }}" class="hidden rounded-xl px-3 py-2 text-sm font-bold {{ request()->routeIs('library') ? 'bg-orange-100 text-orange-800' : 'text-slate-600' }} sm:inline-flex">Library</a>
                         @if(auth()->user()->is_admin)<a wire:navigate href="{{ route('admin.dashboard') }}" class="hidden rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-extrabold text-white sm:inline-flex">Dashboard</a>@endif
                         <form method="POST" action="{{ route('logout') }}">@csrf<button class="grid size-11 place-items-center rounded-full bg-orange-100 text-sm font-extrabold text-orange-800" aria-label="Sign out {{ auth()->user()->name }}">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</button></form>
                     @endguest
@@ -67,11 +69,12 @@
         <main id="main-content" class="pb-28 md:pb-0">{{ $slot ?? '' }}@yield('content')</main>
         <footer class="border-t border-stone-200 bg-slate-950 text-white"><div class="mx-auto grid max-w-7xl gap-8 px-4 pb-32 pt-10 sm:grid-cols-2 sm:px-6 md:pb-10 lg:grid-cols-[1fr_auto] lg:px-8"><div><p class="font-display text-2xl font-extrabold">wavexa<span class="text-orange-500">.</span></p><p class="mt-3 max-w-md text-sm leading-6 text-slate-400">A global discovery layer for live voices, television, and culture. Streams connect directly to their listed providers.</p></div><div class="flex gap-3 self-end text-xs font-bold"><a wire:navigate href="{{ route('radio.index') }}" class="rounded-full border border-white/15 px-4 py-2">Radio</a><a wire:navigate href="{{ route('tv.index') }}" class="rounded-full border border-white/15 px-4 py-2">TV</a><a wire:navigate href="{{ route('podcasts.index') }}" class="rounded-full border border-white/15 px-4 py-2">Podcasts</a></div></div></footer>
 
-        <nav class="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-[24px] border border-stone-200 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-2xl shadow-slate-900/20 backdrop-blur-xl md:hidden" aria-label="Mobile navigation" x-data>
+        <nav class="fixed inset-x-3 bottom-3 z-50 grid {{ auth()->check() ? 'grid-cols-5' : 'grid-cols-4' }} rounded-[24px] border border-stone-200 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-2xl shadow-slate-900/20 backdrop-blur-xl md:hidden" aria-label="Mobile navigation" x-data>
             <a wire:navigate href="{{ route('home') }}" class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold text-slate-500"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-2 4-4 2 2-4Z"/></svg>Discover</a>
             <a wire:navigate href="{{ route('radio.index') }}" class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold {{ request()->routeIs('radio.*') ? 'bg-orange-100 text-orange-700' : 'text-slate-500' }}"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="m7 7 10-4M8 13h.01M12 13h5"/></svg>Radio</a>
             <a wire:navigate href="{{ route('tv.index') }}" class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold {{ request()->routeIs('tv.*') ? 'bg-cyan-100 text-cyan-800' : 'text-slate-500' }}"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m9 10 5 3-5 3Z"/></svg>TV</a>
             <a wire:navigate href="{{ route('podcasts.index') }}" class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold {{ request()->routeIs('podcasts.*') ? 'bg-amber-100 text-amber-800' : 'text-slate-500' }}"><svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="11" r="3"/><path d="M7.5 16.5a7 7 0 1 1 9 0M9.5 14.5a4 4 0 1 1 5 0M12 14v7"/></svg>Podcasts</a>
+            @auth<a wire:navigate href="{{ route('library') }}" class="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-bold {{ request()->routeIs('library') ? 'bg-orange-100 text-orange-800' : 'text-slate-500' }}"><span class="text-lg">♥</span>Library</a>@endauth
         </nav>
 
         @persist('wavexa-radio-player')
